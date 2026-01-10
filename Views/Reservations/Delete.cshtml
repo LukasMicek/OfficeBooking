@@ -1,0 +1,38 @@
+﻿@model OfficeBooking.Models.Reservation
+
+@{
+    ViewData["Title"] = "Anuluj rezerwację";
+}
+
+<h2>Anuluj rezerwację</h2>
+
+<div class="alert alert-warning mt-3">
+    Czy na pewno chcesz anulować tę rezerwację?
+</div>
+
+
+<dl class="row mt-3">
+    <dt class="col-sm-2">Sala</dt>
+    <dd class="col-sm-10">@Model.Room.Name</dd>
+
+    <dt class="col-sm-2">Tytuł</dt>
+    <dd class="col-sm-10">@Model.Title</dd>
+
+    <dt class="col-sm-2">Od</dt>
+    <dd class="col-sm-10">@Model.Start.ToString("yyyy-MM-dd HH:mm")</dd>
+
+    <dt class="col-sm-2">Do</dt>
+    <dd class="col-sm-10">@Model.End.ToString("yyyy-MM-dd HH:mm")</dd>
+
+    <dt class="col-sm-2">Uczestnicy</dt>
+    <dd class="col-sm-10">@Model.AttendeesCount</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <button type="submit" class="btn btn-warning">Anuluj</button>
+    <a class="btn btn-secondary" asp-action="My">Anuluj</a>
+</form>
+

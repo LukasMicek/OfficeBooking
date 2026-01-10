@@ -1,0 +1,89 @@
+﻿@model IEnumerable<OfficeBooking.Models.Reservation>
+
+@{
+    ViewData["Title"] = "Moje rezerwacje";
+}
+
+<h2>Moje rezerwacje</h2>
+
+<p class="mt-2">
+    <a asp-controller="Reservations" asp-action="History">Zobacz historię (anulowane)</a>
+</p>
+
+@if (TempData["Success"] is string msg)
+{
+    <div class="alert alert-success mt-3">@msg</div>
+}
+
+@if (TempData["Error"] is string err)
+{
+    <div class="alert alert-danger mt-3">@err</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info mt-3">
+        Nie masz jeszcze żadnych rezerwacji.
+    </div>
+}
+else
+{
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Sala</th>
+                <th>Tytuł</th>
+                <th>Od</th>
+                <th>Do</th>
+                <th>Uczestnicy</th>
+                <th>Status</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td>@r.Room.Name</td>
+                    <td>@r.Title</td>
+                    <td>@r.Start.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@r.End.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@r.AttendeesCount</td>
+                    <td>
+                        @if (r.Start > DateTime.Now)
+                        {
+                            <span class="badge bg-success">Aktywna</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">W trakcie / minęła</span>
+                        }
+                    </td>
+                    <td>
+                        @if (r.Start > DateTime.Now)
+                        {
+                            <a class="btn btn-sm btn-outline-primary me-2"
+                               asp-controller="Reservations"
+                               asp-action="Edit"
+                               asp-route-id="@r.Id">
+                                Edytuj
+                            </a>
+
+                            <a class="btn btn-sm btn-danger"
+                               asp-controller="Reservations"
+                               asp-action="Delete"
+                               asp-route-id="@r.Id">
+                                Anuluj
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Nie można zmieniać po rozpoczęciu</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,42 @@
+﻿@model IEnumerable<OfficeBooking.Models.Reservation>
+
+@{
+    ViewData["Title"] = "Historia rezerwacji";
+}
+
+<h2>Historia rezerwacji</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info mt-3">
+        Brak anulowanych rezerwacji.
+    </div>
+}
+else
+{
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Sala</th>
+                <th>Tytuł</th>
+                <th>Od</th>
+                <th>Do</th>
+                <th>Anulowano</th>
+                <th>Powód</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td>@r.Room.Name</td>
+                    <td>@r.Title</td>
+                    <td>@r.Start.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@r.End.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@(r.CancelledAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                    <td>@(string.IsNullOrWhiteSpace(r.CancelReason) ? "-" : r.CancelReason)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
