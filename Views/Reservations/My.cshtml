@@ -4,21 +4,11 @@
     ViewData["Title"] = "Moje rezerwacje";
 }
 
-<h2>Moje rezerwacje</h2>
+<partial name="_PageHeader" model='("Moje rezerwacje", "Tutaj widzisz aktywne rezerwacje i możesz je edytować lub anulować przed rozpoczęciem.")' />
 
 <p class="mt-2">
     <a asp-controller="Reservations" asp-action="History">Zobacz historię (anulowane)</a>
 </p>
-
-@if (TempData["Success"] is string msg)
-{
-    <div class="alert alert-success mt-3">@msg</div>
-}
-
-@if (TempData["Error"] is string err)
-{
-    <div class="alert alert-danger mt-3">@err</div>
-}
 
 @if (!Model.Any())
 {

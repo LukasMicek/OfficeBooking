@@ -13,5 +13,7 @@
         public string UserEmail { get; set; } = string.Empty;
 
         public bool IsCancelled { get; set; }
+        public DateTime? CancelledAt { get; set; }
+        public string? CancelReason { get; set; }
     }
 }

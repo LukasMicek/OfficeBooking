@@ -25,6 +25,9 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+await IdentitySeeder.SeedAsync(app.Services);
+await DemoDataSeeder.SeedAsync(app.Services);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -48,9 +51,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
-
-await IdentitySeeder.SeedAsync(app.Services);
-await DemoDataSeeder.SeedAsync(app.Services);
 
 app.Run();
 

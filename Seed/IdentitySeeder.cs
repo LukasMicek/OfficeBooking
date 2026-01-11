@@ -11,7 +11,6 @@ namespace OfficeBooking.Seed
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
-            // Roles
             string[] roles = { "Admin", "User" };
 
             foreach (var role in roles)
@@ -22,7 +21,6 @@ namespace OfficeBooking.Seed
                 }
             }
 
-            // Admin user
             var adminEmail = "admin@local";
             var adminPassword = "Admin123!";
 
@@ -39,13 +37,11 @@ namespace OfficeBooking.Seed
                 var result = await userManager.CreateAsync(admin, adminPassword);
                 if (!result.Succeeded)
                 {
-                    // Error
                     throw new Exception("Nie udało się utworzyć konta admin: " +
                                         string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
             }
 
-            // Admin role for admin
             if (!await userManager.IsInRoleAsync(admin, "Admin"))
             {
                 await userManager.AddToRoleAsync(admin, "Admin");

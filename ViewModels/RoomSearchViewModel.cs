@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using OfficeBooking.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace OfficeBooking.ViewModels
 {
@@ -32,8 +33,10 @@ namespace OfficeBooking.ViewModels
         [Display(Name = "Wymagane wyposażenie")]
         public List<int> EquipmentIds { get; set; } = new();
 
+        [ValidateNever]
         public List<Equipment> AllEquipments { get; set; } = new();
-        public List<Room> Results { get; set; } = new();
+        [ValidateNever]
+        public List<Room>? Results { get; set; }
 
         public DateTime StartDateTime => StartDate.Date + StartTime;
         public DateTime EndDateTime => EndDate.Date + EndTime;

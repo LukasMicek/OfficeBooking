@@ -163,7 +163,6 @@ namespace OfficeBooking.Controllers
                 EndTime = reservation.End.TimeOfDay
             };
 
-            // Przekaż Id rezerwacji przez ViewData 
             ViewData["ReservationId"] = reservation.Id;
 
             return View(vm);
@@ -188,7 +187,6 @@ namespace OfficeBooking.Controllers
                 return RedirectToAction(nameof(My));
             }
 
-            // Odśwież dane sali do widoku, gdyby wróciło na formularz
             vm.RoomId = reservation.RoomId;
             vm.RoomName = reservation.Room.Name;
             vm.RoomCapacity = reservation.Room.Capacity;
@@ -210,7 +208,6 @@ namespace OfficeBooking.Controllers
             var start = vm.StartDateTime;
             var end = vm.EndDateTime;
 
-            // Konflikt z inną rezerwacją tej sali
             var hasConflict = await _context.Reservations.AnyAsync(r =>
                 r.RoomId == reservation.RoomId &&
                 r.Id != reservation.Id &&
@@ -225,7 +222,6 @@ namespace OfficeBooking.Controllers
                 return View(vm);
             }
 
-            // Zapis zmian
             reservation.Title = vm.Title;
             reservation.Notes = vm.Notes;
             reservation.AttendeesCount = vm.AttendeesCount;

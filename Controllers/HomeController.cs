@@ -21,11 +21,9 @@ namespace OfficeBooking.Controllers
         {
             var now = DateTime.Now;
 
-            // start: za godzinê, zaokr¹glone do pe³nej godziny
             var start = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0).AddHours(1);
             var end = start.AddHours(1);
 
-            // je¿eli wypadamy poza godziny pracy, to ustaw na jutro 09:00–10:00
             var workStart = new TimeSpan(8, 0, 0);
             var workEnd = new TimeSpan(20, 0, 0);
 

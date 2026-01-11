@@ -34,7 +34,9 @@ namespace OfficeBooking.Controllers
                     End = r.End,
                     AttendeesCount = r.AttendeesCount,
                     UserEmail = u.Email ?? "(brak email)",
-                    IsCancelled = r.IsCancelled
+                    IsCancelled = r.IsCancelled,
+                    CancelledAt = r.CancelledAt,
+                    CancelReason = r.CancelReason
                 }
             ).ToListAsync();
 

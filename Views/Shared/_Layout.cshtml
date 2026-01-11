@@ -20,7 +20,7 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Wyszukiwarka</a>
                         </li>
                         @if ((User.Identity?.IsAuthenticated ?? false) && !User.IsInRole("Admin"))
                         {
@@ -37,7 +37,7 @@
                                 <a class="nav-link text-light" asp-controller="Equipments" asp-action="Index">Wyposażenie</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-light" asp-controller="AdminReservations" asp-action="Index">Rezerwacje</a>
+                                <a class="nav-link text-light" asp-controller="AdminReservations" asp-action="Index">Rezerwacje (Admin)</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-light" asp-controller="AdminReports" asp-action="RoomUsage">Raport obłożenia</a>

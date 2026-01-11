@@ -159,19 +159,15 @@ namespace OfficeBooking.Controllers
 
             if (room == null) return NotFound();
 
-            // Aktualizacja podstawowych pól sali
             room.Name = vm.Name;
             room.Capacity = vm.Capacity;
 
-            // Aktualizacja powiązań wyposażenia
             var selected = (vm.SelectedEquipmentIds ?? new List<int>()).Distinct().ToList();
             var existing = room.RoomEquipments.Select(re => re.EquipmentId).ToList();
 
-            // Usuń te, które były, a nie są zaznaczone
             var toRemove = room.RoomEquipments.Where(re => !selected.Contains(re.EquipmentId)).ToList();
             _context.RoomEquipments.RemoveRange(toRemove);
 
-            // Dodaj te, których nie było
             var toAdd = selected.Where(eqId => !existing.Contains(eqId)).ToList();
             foreach (var eqId in toAdd)
             {

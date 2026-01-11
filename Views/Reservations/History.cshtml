@@ -4,7 +4,7 @@
     ViewData["Title"] = "Historia rezerwacji";
 }
 
-<h2>Historia rezerwacji</h2>
+<partial name="_PageHeader" model='("Historia rezerwacji", "Anulowane rezerwacje wraz z powodem.")' />
 
 @if (!Model.Any())
 {

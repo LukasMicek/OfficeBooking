@@ -11,8 +11,8 @@ using OfficeBooking.Data;
 namespace OfficeBooking.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260108001450_AddAttendeesToReservation")]
-    partial class AddAttendeesToReservation
+    [Migration("20260111014325_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -241,8 +241,18 @@ namespace OfficeBooking.Migrations
                     b.Property<int>("AttendeesCount")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("End")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsCancelled")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)

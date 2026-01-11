@@ -25,13 +25,11 @@ namespace OfficeBooking.Controllers
             var from = new DateTime(y, m, 1);
             var to = from.AddMonths(1);
 
-            // Bierzemy tylko rezerwacje nieanulowane, które nachodzą na miesiąc
             var reservations = await _context.Reservations
                 .Where(r => !r.IsCancelled && r.Start < to && r.End > from)
                 .Select(r => new { r.RoomId, r.Start, r.End })
                 .ToListAsync();
 
-            // Zliczamy minuty
             var minutesByRoom = reservations
                 .GroupBy(r => r.RoomId)
                 .Select(g => new

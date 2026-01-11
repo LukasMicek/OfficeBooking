@@ -1,28 +1,30 @@
 ﻿@model OfficeBooking.ViewModels.RoomFormViewModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edytuj";
 }
 
-<h1>Edit</h1>
+<h1>Edytuj</h1>
 
-<h4>Room</h4>
+<h4>Sala</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Capacity" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="Capacity" class="form-label"></label>
                 <input asp-for="Capacity" class="form-control" />
                 <span asp-validation-for="Capacity" class="text-danger"></span>
             </div>
+
             <div class="form-group mt-3">
                 <label class="form-label">Wyposażenie</label>
 

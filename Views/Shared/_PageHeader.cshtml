@@ -1,0 +1,11 @@
+﻿@model (string Title, string? Subtitle)
+
+<div class="d-flex align-items-start justify-content-between mb-3">
+    <div>
+        <h2 class="mb-1">@Model.Title</h2>
+        @if (!string.IsNullOrWhiteSpace(Model.Subtitle))
+        {
+            <div class="text-muted">@Model.Subtitle</div>
+        }
+    </div>
+</div>

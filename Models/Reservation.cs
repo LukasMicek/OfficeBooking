@@ -27,7 +27,6 @@ namespace OfficeBooking.Models
         [StringLength(500)]
         public string? Notes { get; set; }
 
-        // Id of reservation owner
         [Required]
         public string UserId { get; set; } = string.Empty;
 
