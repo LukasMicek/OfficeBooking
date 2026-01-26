@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OfficeBooking.Business;
 using OfficeBooking.Data;
 using OfficeBooking.Models;
 using OfficeBooking.ViewModels;
@@ -13,22 +14,31 @@ namespace OfficeBooking.Controllers
     {
         private readonly ApplicationDbContext _context;
 
+        private const string CancelledByUserReason = "Anulowane przez użytkownika";
+
         public ReservationsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
+        private string? GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // LISTY UŻYTKOWNIKA
+
         [HttpGet]
         public async Task<IActionResult> My()
         {
+            // Admin nie rezerwuje sal
             if (User.IsInRole("Admin"))
-            {
                 return Forbid();
-            }
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Forbid();
 
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Forbid();
+
+            // Wyświetlamy tylko aktywne rezerwacje
             var myReservations = await _context.Reservations
+                .AsNoTracking()
                 .Include(r => r.Room)
                 .Where(r => r.UserId == userId && !r.IsCancelled)
                 .OrderByDescending(r => r.Start)
@@ -41,13 +51,14 @@ namespace OfficeBooking.Controllers
         public async Task<IActionResult> History()
         {
             if (User.IsInRole("Admin"))
-            {
                 return Forbid();
-            }
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Forbid();
+
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Forbid();
 
             var history = await _context.Reservations
+                .AsNoTracking()
                 .Include(r => r.Room)
                 .Where(r => r.UserId == userId && r.IsCancelled)
                 .OrderByDescending(r => r.CancelledAt)
@@ -56,13 +67,24 @@ namespace OfficeBooking.Controllers
             return View(history);
         }
 
+        // TWORZENIE
 
         [HttpGet]
-        public async Task<IActionResult> Create(int roomId, DateTime? startDate, TimeSpan? startTime, DateTime? endDate, TimeSpan? endTime)
+        public async Task<IActionResult> Create(
+            int roomId,
+            DateTime? startDate,
+            TimeSpan? startTime,
+            DateTime? endDate,
+            TimeSpan? endTime)
+
         {
-            var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == roomId);
+            var room = await _context.Rooms
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+
             if (room == null) return NotFound();
 
+            // Wstępne wypełnienie formularza
             var vm = new ReservationCreateViewModel
             {
                 RoomId = room.Id,
@@ -80,21 +102,88 @@ namespace OfficeBooking.Controllers
             return View(vm);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(ReservationCreateViewModel vm)
+        {
+            var room = await _context.Rooms
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.Id == vm.RoomId);
+
+            if (room == null) return NotFound();
+
+            vm.RoomName = room.Name;
+            vm.RoomCapacity = room.Capacity;
+
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            // liczba uczestników <= pojemność
+            if (vm.AttendeesCount > room.Capacity)
+            {
+                ModelState.AddModelError(nameof(vm.AttendeesCount),
+                    $"Liczba uczestników nie może przekraczać pojemności sali ({room.Capacity}).");
+                return View(vm);
+            }
+
+            var start = vm.StartDateTime;
+            var end = vm.EndDateTime;
+
+            // Pobranie istniejących rezerwacji dla tej sali i sprawdzenie konfliktów
+            var existingReservations = await _context.Reservations
+                .AsNoTracking()
+                .Where(r => r.RoomId == vm.RoomId)
+                .ToListAsync();
+
+            if (ReservationConflict.HasConflict(existingReservations, start, end))
+            {
+                ModelState.AddModelError(string.Empty, "Sala jest już zajęta w wybranym przedziale czasu.");
+                return View(vm);
+            }
+
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Forbid();
+
+            var reservation = new Reservation
+            {
+                RoomId = vm.RoomId,
+                Title = vm.Title,
+                Notes = vm.Notes,
+                AttendeesCount = vm.AttendeesCount,
+                Start = start,
+                End = end,
+                UserId = userId
+            };
+
+            _context.Reservations.Add(reservation);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Rezerwacja została utworzona.";
+            return RedirectToAction("Index", "Home");
+        }
+
+        // ANULOWANIE
+
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Forbid();
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Forbid();
 
+            // user może anulować tylko swoje rezerwacje
             var reservation = await _context.Reservations
+                .AsNoTracking()
                 .Include(r => r.Room)
                 .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
 
             if (reservation == null) return NotFound();
 
+            // po rozpoczęciu nie można anulować/zmieniać
             if (reservation.Start <= DateTime.Now)
             {
-                TempData["Error"] = "Nie można usunąć rezerwacji, która już się rozpoczęła.";
+                TempData["Error"] = "Nie można anulować rezerwacji, która już się rozpoczęła.";
                 return RedirectToAction(nameof(My));
             }
 
@@ -105,8 +194,9 @@ namespace OfficeBooking.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Forbid();
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Forbid();
 
             var reservation = await _context.Reservations
                 .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
@@ -115,13 +205,14 @@ namespace OfficeBooking.Controllers
 
             if (reservation.Start <= DateTime.Now)
             {
-                TempData["Error"] = "Nie można usunąć rezerwacji, która już się rozpoczęła.";
+                TempData["Error"] = "Nie można anulować rezerwacji, która już się rozpoczęła.";
                 return RedirectToAction(nameof(My));
             }
 
+            // nie usuwamy rekordu, tylko oznaczamy jako anulowany.
             reservation.IsCancelled = true;
             reservation.CancelledAt = DateTime.Now;
-            reservation.CancelReason = "Anulowane przez użytkownika";
+            reservation.CancelReason = CancelledByUserReason;
 
             await _context.SaveChangesAsync();
 
@@ -129,13 +220,17 @@ namespace OfficeBooking.Controllers
             return RedirectToAction(nameof(My));
         }
 
+        // EDYCJA
+
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Forbid();
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Forbid();
 
             var reservation = await _context.Reservations
+                .AsNoTracking()
                 .Include(r => r.Room)
                 .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
 
@@ -172,8 +267,9 @@ namespace OfficeBooking.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ReservationCreateViewModel vm)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Forbid();
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Forbid();
 
             var reservation = await _context.Reservations
                 .Include(r => r.Room)
@@ -208,20 +304,20 @@ namespace OfficeBooking.Controllers
             var start = vm.StartDateTime;
             var end = vm.EndDateTime;
 
-            var hasConflict = await _context.Reservations.AnyAsync(r =>
-                r.RoomId == reservation.RoomId &&
-                r.Id != reservation.Id &&
-                !r.IsCancelled &&
-                start < r.End &&
-                end > r.Start);
+            // Sprawdzenie konfliktów z innymi rezerwacjami
+            var existingReservations = await _context.Reservations
+                .AsNoTracking()
+                .Where(r => r.RoomId == reservation.RoomId)
+                .ToListAsync();
 
-            if (hasConflict)
+            if (ReservationConflict.HasConflict(existingReservations, start, end, ignoreReservationId: reservation.Id))
             {
-                ModelState.AddModelError("", "Sala jest już zajęta w wybranym przedziale czasu.");
+                ModelState.AddModelError(string.Empty, "Sala jest już zajęta w wybranym przedziale czasu.");
                 ViewData["ReservationId"] = reservation.Id;
                 return View(vm);
             }
 
+            // Aktualizacja danych rezerwacji
             reservation.Title = vm.Title;
             reservation.Notes = vm.Notes;
             reservation.AttendeesCount = vm.AttendeesCount;
@@ -233,63 +329,7 @@ namespace OfficeBooking.Controllers
             TempData["Success"] = "Rezerwacja została zaktualizowana.";
             return RedirectToAction(nameof(My));
         }
-        
-        [HttpPost]
-        public async Task<IActionResult> Create(ReservationCreateViewModel vm)
-        {
-            var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == vm.RoomId);
-            if (room == null) return NotFound();
-
-            vm.RoomName = room.Name;
-            vm.RoomCapacity = room.Capacity;
-
-            if (!ModelState.IsValid)
-            {
-                return View(vm);
-            }
-
-            if (vm.AttendeesCount > room.Capacity)
-            {
-                ModelState.AddModelError(nameof(vm.AttendeesCount),
-                    $"Liczba uczestników nie może przekraczać pojemności sali ({room.Capacity}).");
-                return View(vm);
-            }
-
-            var start = vm.StartDateTime;
-            var end = vm.EndDateTime;
-
-            var hasConflict = await _context.Reservations.AnyAsync(r =>
-                r.RoomId == vm.RoomId &&
-                !r.IsCancelled &&
-                start < r.End &&
-                end > r.Start);
-
-            if (hasConflict)
-            {
-                ModelState.AddModelError("", "Sala jest już zajęta w wybranym przedziale czasu.");
-                return View(vm);
-            }
-
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Forbid();
-
-            var reservation = new Reservation
-            {
-                RoomId = vm.RoomId,
-                Title = vm.Title,
-                Notes = vm.Notes,
-                AttendeesCount = vm.AttendeesCount,
-                Start = start,
-                End = end,
-                UserId = userId
-            };
-
-            _context.Reservations.Add(reservation);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Rezerwacja została utworzona.";
-            return RedirectToAction("Index", "Home");
-        }
     }
 }
+
 
