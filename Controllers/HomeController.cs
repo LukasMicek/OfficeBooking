@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using OfficeBooking.Business;
 using OfficeBooking.Services;
 using OfficeBooking.ViewModels;
 
@@ -16,20 +17,7 @@ public class HomeController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var now = DateTime.Now;
-
-        var start = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0).AddHours(1);
-        var end = start.AddHours(1);
-
-        var workStart = new TimeSpan(8, 0, 0);
-        var workEnd = new TimeSpan(20, 0, 0);
-
-        if (start.TimeOfDay < workStart || end.TimeOfDay > workEnd)
-        {
-            var tomorrow = DateTime.Today.AddDays(1);
-            start = tomorrow.AddHours(9);
-            end = tomorrow.AddHours(10);
-        }
+        var (start, end) = BookingRules.GetDefaultTimeSlot();
 
         var vm = new RoomSearchViewModel
         {
