@@ -1,236 +1,142 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using OfficeBooking.Data;
-using OfficeBooking.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using OfficeBooking.Services;
 using OfficeBooking.ViewModels;
 
+namespace OfficeBooking.Controllers;
 
-namespace OfficeBooking.Controllers
+[Authorize(Roles = "Admin")]
+public class RoomsController : Controller
 {
-    [Authorize(Roles = "Admin")]
-    public class RoomsController : Controller
+    private readonly IRoomService _roomService;
+
+    public RoomsController(IRoomService roomService)
     {
-        private readonly ApplicationDbContext _context;
+        _roomService = roomService;
+    }
 
-        public RoomsController(ApplicationDbContext context)
+    public async Task<IActionResult> Index()
+    {
+        var rooms = await _roomService.GetAllAsync();
+        return View(rooms);
+    }
+
+    public async Task<IActionResult> Details(int? id)
+    {
+        if (id == null)
+            return NotFound();
+
+        var room = await _roomService.GetByIdAsync(id.Value);
+        if (room == null)
+            return NotFound();
+
+        return View(room);
+    }
+
+    public async Task<IActionResult> Create()
+    {
+        var vm = new RoomFormViewModel
         {
-            _context = context;
-        }
+            AllEquipments = (await _roomService.GetAllEquipmentAsync()).ToList()
+        };
+        return View(vm);
+    }
 
-        // GET: Rooms
-        public async Task<IActionResult> Index()
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(RoomFormViewModel vm)
+    {
+        if (!ModelState.IsValid)
         {
-            var rooms = await _context.Rooms
-                .Include(r => r.RoomEquipments)
-                    .ThenInclude(re => re.Equipment)
-                .OrderBy(r => r.Name)
-                .ToListAsync();
-
-            return View(rooms);
-        }
-
-
-        // GET: Rooms/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var room = await _context.Rooms
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (room == null)
-            {
-                return NotFound();
-            }
-
-            return View(room);
-        }
-
-        // GET: Rooms/Create
-        public async Task<IActionResult> Create()
-        {
-            var vm = new RoomFormViewModel
-            {
-                AllEquipments = await _context.Equipments
-                    .OrderBy(e => e.Name)
-                    .ToListAsync()
-            };
-
+            vm.AllEquipments = (await _roomService.GetAllEquipmentAsync()).ToList();
             return View(vm);
         }
 
+        var request = new CreateRoomRequest(
+            vm.Name,
+            vm.Capacity,
+            vm.SelectedEquipmentIds
+        );
 
-        // POST: Rooms/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(RoomFormViewModel vm)
+        await _roomService.CreateAsync(request);
+        return RedirectToAction(nameof(Index));
+    }
+
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null)
+            return NotFound();
+
+        var room = await _roomService.GetByIdWithEquipmentAsync(id.Value);
+        if (room == null)
+            return NotFound();
+
+        var vm = new RoomFormViewModel
         {
-            if (!ModelState.IsValid)
-            {
-                vm.AllEquipments = await _context.Equipments
-                    .OrderBy(e => e.Name)
-                    .ToListAsync();
+            Id = room.Id,
+            Name = room.Name,
+            Capacity = room.Capacity,
+            SelectedEquipmentIds = room.RoomEquipments.Select(re => re.EquipmentId).ToList(),
+            AllEquipments = (await _roomService.GetAllEquipmentAsync()).ToList()
+        };
 
-                return View(vm);
-            }
+        return View(vm);
+    }
 
-            var room = new Room
-            {
-                Name = vm.Name,
-                Capacity = vm.Capacity
-            };
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, RoomFormViewModel vm)
+    {
+        if (id != vm.Id)
+            return NotFound();
 
-            _context.Rooms.Add(room);
-            await _context.SaveChangesAsync();
-
-            if (vm.SelectedEquipmentIds != null && vm.SelectedEquipmentIds.Count > 0)
-            {
-                foreach (var eqId in vm.SelectedEquipmentIds.Distinct())
-                {
-                    _context.RoomEquipments.Add(new RoomEquipment
-                    {
-                        RoomId = room.Id,
-                        EquipmentId = eqId
-                    });
-                }
-
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
-
-
-        // GET: Rooms/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        if (!ModelState.IsValid)
         {
-            if (id == null) return NotFound();
-
-            var room = await _context.Rooms
-                .Include(r => r.RoomEquipments)
-                .FirstOrDefaultAsync(r => r.Id == id);
-
-            if (room == null) return NotFound();
-
-            var vm = new RoomFormViewModel
-            {
-                Id = room.Id,
-                Name = room.Name,
-                Capacity = room.Capacity,
-                SelectedEquipmentIds = room.RoomEquipments.Select(re => re.EquipmentId).ToList(),
-                AllEquipments = await _context.Equipments.OrderBy(e => e.Name).ToListAsync()
-            };
-
+            vm.AllEquipments = (await _roomService.GetAllEquipmentAsync()).ToList();
             return View(vm);
         }
 
+        var request = new UpdateRoomRequest(
+            vm.Name,
+            vm.Capacity,
+            vm.SelectedEquipmentIds
+        );
 
-        // POST: Rooms/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, RoomFormViewModel vm)
+        var result = await _roomService.UpdateAsync(id, request);
+        if (!result.Success)
         {
-            if (id != vm.Id) return NotFound();
+            ModelState.AddModelError(string.Empty, result.Error!);
+            vm.AllEquipments = (await _roomService.GetAllEquipmentAsync()).ToList();
+            return View(vm);
+        }
 
-            if (!ModelState.IsValid)
-            {
-                vm.AllEquipments = await _context.Equipments
-                    .OrderBy(e => e.Name)
-                    .ToListAsync();
+        return RedirectToAction(nameof(Index));
+    }
 
-                return View(vm);
-            }
+    public async Task<IActionResult> Delete(int? id)
+    {
+        if (id == null)
+            return NotFound();
 
-            var room = await _context.Rooms
-                .Include(r => r.RoomEquipments)
-                .FirstOrDefaultAsync(r => r.Id == id);
+        var room = await _roomService.GetByIdAsync(id.Value);
+        if (room == null)
+            return NotFound();
 
-            if (room == null) return NotFound();
+        return View(room);
+    }
 
-            room.Name = vm.Name;
-            room.Capacity = vm.Capacity;
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        var result = await _roomService.DeleteAsync(id);
 
-            var selected = (vm.SelectedEquipmentIds ?? new List<int>()).Distinct().ToList();
-            var existing = room.RoomEquipments.Select(re => re.EquipmentId).ToList();
-
-            var toRemove = room.RoomEquipments.Where(re => !selected.Contains(re.EquipmentId)).ToList();
-            _context.RoomEquipments.RemoveRange(toRemove);
-
-            var toAdd = selected.Where(eqId => !existing.Contains(eqId)).ToList();
-            foreach (var eqId in toAdd)
-            {
-                _context.RoomEquipments.Add(new RoomEquipment
-                {
-                    RoomId = room.Id,
-                    EquipmentId = eqId
-                });
-            }
-
-            await _context.SaveChangesAsync();
+        if (!result.Success)
+        {
+            TempData["Error"] = result.Error;
             return RedirectToAction(nameof(Index));
         }
 
-
-        // GET: Rooms/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var room = await _context.Rooms
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (room == null)
-            {
-                return NotFound();
-            }
-
-            return View(room);
-        }
-
-        // POST: Rooms/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var hasActiveReservations = await _context.Reservations.AnyAsync(r =>
-                r.RoomId == id && !r.IsCancelled);
-
-            if (hasActiveReservations)
-            {
-                TempData["Error"] = "Nie można usunąć sali, która ma aktywne rezerwacje. Najpierw anuluj rezerwacje tej sali.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            var links = await _context.RoomEquipments.Where(x => x.RoomId == id).ToListAsync();
-            _context.RoomEquipments.RemoveRange(links);
-
-            var room = await _context.Rooms.FindAsync(id);
-            if (room != null)
-            {
-                _context.Rooms.Remove(room);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool RoomExists(int id)
-        {
-            return _context.Rooms.Any(e => e.Id == id);
-        }
+        return RedirectToAction(nameof(Index));
     }
 }

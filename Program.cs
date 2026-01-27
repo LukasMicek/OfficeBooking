@@ -19,6 +19,7 @@ builder.Services.AddControllersWithViews();
 
 // Application services
 builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<IRoomService, RoomService>();
 
 var app = builder.Build();
 

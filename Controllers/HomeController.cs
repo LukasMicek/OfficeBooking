@@ -1,92 +1,66 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OfficeBooking.Data;
+using OfficeBooking.Services;
 using OfficeBooking.ViewModels;
 
-namespace OfficeBooking.Controllers
+namespace OfficeBooking.Controllers;
+
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    private readonly IRoomService _roomService;
+
+    public HomeController(IRoomService roomService)
     {
-        private readonly ILogger<HomeController> _logger;
-        private readonly ApplicationDbContext _context;
+        _roomService = roomService;
+    }
 
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        var now = DateTime.Now;
+
+        var start = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0).AddHours(1);
+        var end = start.AddHours(1);
+
+        var workStart = new TimeSpan(8, 0, 0);
+        var workEnd = new TimeSpan(20, 0, 0);
+
+        if (start.TimeOfDay < workStart || end.TimeOfDay > workEnd)
         {
-            _logger = logger;
-            _context = context;
+            var tomorrow = DateTime.Today.AddDays(1);
+            start = tomorrow.AddHours(9);
+            end = tomorrow.AddHours(10);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
+        var vm = new RoomSearchViewModel
         {
-            var now = DateTime.Now;
+            StartDate = start.Date,
+            StartTime = start.TimeOfDay,
+            EndDate = end.Date,
+            EndTime = end.TimeOfDay,
+            AllEquipments = (await _roomService.GetAllEquipmentAsync()).ToList()
+        };
 
-            var start = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0).AddHours(1);
-            var end = start.AddHours(1);
+        return View(vm);
+    }
 
-            var workStart = new TimeSpan(8, 0, 0);
-            var workEnd = new TimeSpan(20, 0, 0);
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Index(RoomSearchViewModel vm)
+    {
+        vm.AllEquipments = (await _roomService.GetAllEquipmentAsync()).ToList();
 
-            if (start.TimeOfDay < workStart || end.TimeOfDay > workEnd)
-            {
-                var tomorrow = DateTime.Today.AddDays(1);
-                start = tomorrow.AddHours(9);
-                end = tomorrow.AddHours(10);
-            }
-
-            var vm = new RoomSearchViewModel
-            {
-                StartDate = start.Date,
-                StartTime = start.TimeOfDay,
-                EndDate = end.Date,
-                EndTime = end.TimeOfDay,
-
-                AllEquipments = await _context.Equipments
-                    .OrderBy(e => e.Name)
-                    .ToListAsync()
-            };
-
+        if (!ModelState.IsValid)
             return View(vm);
-        }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Index(RoomSearchViewModel vm)
-        {
-            vm.AllEquipments = await _context.Equipments
-                .OrderBy(e => e.Name)
-                .ToListAsync();
+        var request = new RoomSearchRequest(
+            vm.StartDateTime,
+            vm.EndDateTime,
+            vm.RequiredCapacity,
+            vm.EquipmentIds
+        );
 
-            if (!ModelState.IsValid)
-            {
-                return View(vm);
-            }
+        vm.Results = (await _roomService.SearchAvailableAsync(request)).ToList();
 
-            var start = vm.StartDateTime;
-            var end = vm.EndDateTime;
-
-            var query = _context.Rooms
-                .Include(r => r.RoomEquipments).ThenInclude(re => re.Equipment)
-                .Include(r => r.Reservations)
-                .AsQueryable();
-
-            query = query.Where(r => r.Capacity >= vm.RequiredCapacity);
-
-            if (vm.EquipmentIds != null && vm.EquipmentIds.Count > 0)
-            {
-                query = query.Where(r => vm.EquipmentIds.All(eqId =>
-                    r.RoomEquipments.Any(re => re.EquipmentId == eqId)));
-            }
-
-            query = query.Where(r => !r.Reservations.Any(res =>
-                !res.IsCancelled &&
-                start < res.End && end > res.Start));
-
-            vm.Results = await query
-                .OrderBy(r => r.Name)
-                .ToListAsync();
-
-            return View(vm);
-        }
+        return View(vm);
     }
 }
