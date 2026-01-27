@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OfficeBooking.Data;
 using OfficeBooking.Seed;
-
+using OfficeBooking.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +16,9 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+
+// Application services
+builder.Services.AddScoped<IReservationService, ReservationService>();
 
 var app = builder.Build();
 
