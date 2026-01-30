@@ -1,33 +1,26 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using OfficeBooking.Data;
 using OfficeBooking.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using OfficeBooking.Services;
 
 namespace OfficeBooking.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class EquipmentsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IEquipmentService _equipmentService;
 
-        public EquipmentsController(ApplicationDbContext context)
+        public EquipmentsController(IEquipmentService equipmentService)
         {
-            _context = context;
+            _equipmentService = equipmentService;
         }
 
-        // GET: Equipments
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Equipments.ToListAsync());
+            var equipments = await _equipmentService.GetAllAsync();
+            return View(equipments);
         }
 
-        // GET: Equipments/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -35,8 +28,7 @@ namespace OfficeBooking.Controllers
                 return NotFound();
             }
 
-            var equipment = await _context.Equipments
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var equipment = await _equipmentService.GetByIdAsync(id.Value);
             if (equipment == null)
             {
                 return NotFound();
@@ -45,29 +37,23 @@ namespace OfficeBooking.Controllers
             return View(equipment);
         }
 
-        // GET: Equipments/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Equipments/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Equipment equipment)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(equipment);
-                await _context.SaveChangesAsync();
+                await _equipmentService.CreateAsync(equipment.Name);
                 return RedirectToAction(nameof(Index));
             }
             return View(equipment);
         }
 
-        // GET: Equipments/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -75,7 +61,7 @@ namespace OfficeBooking.Controllers
                 return NotFound();
             }
 
-            var equipment = await _context.Equipments.FindAsync(id);
+            var equipment = await _equipmentService.GetByIdAsync(id.Value);
             if (equipment == null)
             {
                 return NotFound();
@@ -83,9 +69,6 @@ namespace OfficeBooking.Controllers
             return View(equipment);
         }
 
-        // POST: Equipments/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Equipment equipment)
@@ -97,28 +80,16 @@ namespace OfficeBooking.Controllers
 
             if (ModelState.IsValid)
             {
-                try
+                var result = await _equipmentService.UpdateAsync(id, equipment.Name);
+                if (!result.Success)
                 {
-                    _context.Update(equipment);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!EquipmentExists(equipment.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    return NotFound();
                 }
                 return RedirectToAction(nameof(Index));
             }
             return View(equipment);
         }
 
-        // GET: Equipments/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -126,8 +97,7 @@ namespace OfficeBooking.Controllers
                 return NotFound();
             }
 
-            var equipment = await _context.Equipments
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var equipment = await _equipmentService.GetByIdAsync(id.Value);
             if (equipment == null)
             {
                 return NotFound();
@@ -136,24 +106,12 @@ namespace OfficeBooking.Controllers
             return View(equipment);
         }
 
-        // POST: Equipments/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var equipment = await _context.Equipments.FindAsync(id);
-            if (equipment != null)
-            {
-                _context.Equipments.Remove(equipment);
-            }
-
-            await _context.SaveChangesAsync();
+            await _equipmentService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool EquipmentExists(int id)
-        {
-            return _context.Equipments.Any(e => e.Id == id);
         }
     }
 }
