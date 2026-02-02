@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OfficeBooking.Data;
+using OfficeBooking.Services;
 using OfficeBooking.ViewModels;
 
 namespace OfficeBooking.Controllers
@@ -9,67 +8,27 @@ namespace OfficeBooking.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminReservationsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IAdminReservationService _adminReservationService;
 
-        public AdminReservationsController(ApplicationDbContext context)
+        public AdminReservationsController(IAdminReservationService adminReservationService)
         {
-            _context = context;
+            _adminReservationService = adminReservationService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index(bool activeOnly = false)
         {
-            var list = await (
-                from r in _context.Reservations
-                join room in _context.Rooms on r.RoomId equals room.Id
-                join u in _context.Users on r.UserId equals u.Id
-                where !activeOnly || !r.IsCancelled
-                orderby r.Start descending
-                select new AdminReservationRowViewModel
-                {
-                    Id = r.Id,
-                    RoomName = room.Name,
-                    Title = r.Title,
-                    Start = r.Start,
-                    End = r.End,
-                    AttendeesCount = r.AttendeesCount,
-                    UserEmail = u.Email ?? "(brak email)",
-                    IsCancelled = r.IsCancelled,
-                    CancelledAt = r.CancelledAt,
-                    CancelReason = r.CancelReason
-                }
-            ).ToListAsync();
-
+            var list = await _adminReservationService.GetListAsync(activeOnly);
             return View(list);
         }
 
         [HttpGet]
         public async Task<IActionResult> Cancel(int id)
         {
-            var vm = await (
-                from r in _context.Reservations
-                join room in _context.Rooms on r.RoomId equals room.Id
-                join u in _context.Users on r.UserId equals u.Id
-                where r.Id == id
-                select new AdminCancelReservationViewModel
-                {
-                    Id = r.Id,
-                    RoomName = room.Name,
-                    Title = r.Title,
-                    Start = r.Start,
-                    End = r.End,
-                    UserEmail = u.Email ?? "(brak email)"
-                }
-            ).FirstOrDefaultAsync();
-
-            if (vm == null) return NotFound();
-
-            var isAlreadyCancelled = await _context.Reservations
-                .AnyAsync(r => r.Id == id && r.IsCancelled);
-
-            if (isAlreadyCancelled)
+            var vm = await _adminReservationService.GetCancelViewModelAsync(id);
+            if (vm == null)
             {
-                TempData["Error"] = "Ta rezerwacja jest już anulowana.";
+                TempData["Error"] = "Ta rezerwacja nie istnieje lub jest już anulowana.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -85,23 +44,22 @@ namespace OfficeBooking.Controllers
                 return View(vm);
             }
 
-            var reservation = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == vm.Id);
-            if (reservation == null) return NotFound();
+            var result = await _adminReservationService.CancelAsync(vm.Id, vm.CancelReason, DateTime.Now);
 
-            if (reservation.IsCancelled)
+            switch (result.Status)
             {
-                TempData["Error"] = "Ta rezerwacja jest już anulowana.";
-                return RedirectToAction(nameof(Index));
+                case AdminCancelStatus.NotFound:
+                    return NotFound();
+
+                case AdminCancelStatus.AlreadyCancelled:
+                    TempData["Error"] = "Ta rezerwacja jest już anulowana.";
+                    return RedirectToAction(nameof(Index));
+
+                case AdminCancelStatus.Success:
+                default:
+                    TempData["Success"] = "Rezerwacja została anulowana.";
+                    return RedirectToAction(nameof(Index));
             }
-
-            reservation.IsCancelled = true;
-            reservation.CancelledAt = DateTime.Now;
-            reservation.CancelReason = vm.CancelReason;
-
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Rezerwacja została anulowana.";
-            return RedirectToAction(nameof(Index));
         }
     }
 }
