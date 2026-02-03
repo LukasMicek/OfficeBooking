@@ -8,12 +8,14 @@ namespace OfficeBooking.Services;
 public class ReservationService : IReservationService
 {
     private readonly ApplicationDbContext _context;
+    private readonly TimeProvider _timeProvider;
 
     private const string DefaultCancelReason = "Anulowane przez użytkownika";
 
-    public ReservationService(ApplicationDbContext context)
+    public ReservationService(ApplicationDbContext context, TimeProvider timeProvider)
     {
         _context = context;
+        _timeProvider = timeProvider;
     }
 
     public async Task<IReadOnlyList<Reservation>> GetUserReservationsAsync(string userId, bool includeCancelled = false)
@@ -59,6 +61,11 @@ public class ReservationService : IReservationService
 
     public async Task<ReservationResult> CreateAsync(CreateReservationRequest request)
     {
+        var now = _timeProvider.GetLocalNow().DateTime;
+        var timeError = BookingRules.ValidateTimeRangeForService(request.Start, request.End, now);
+        if (timeError != null)
+            return ReservationResult.Fail(timeError);
+
         var room = await _context.Rooms
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == request.RoomId);
@@ -103,8 +110,13 @@ public class ReservationService : IReservationService
         if (reservation == null)
             return ReservationResult.Fail("Rezerwacja nie istnieje.");
 
-        if (reservation.Start <= DateTime.Now)
+        var now = _timeProvider.GetLocalNow().DateTime;
+        if (reservation.Start <= now)
             return ReservationResult.Fail("Nie można edytować rezerwacji, która już się rozpoczęła.");
+
+        var timeError = BookingRules.ValidateTimeRangeForService(request.Start, request.End, now);
+        if (timeError != null)
+            return ReservationResult.Fail(timeError);
 
         if (request.AttendeesCount > reservation.Room.Capacity)
             return ReservationResult.Fail($"Liczba uczestników nie może przekraczać pojemności sali ({reservation.Room.Capacity}).");
@@ -136,11 +148,12 @@ public class ReservationService : IReservationService
         if (reservation == null)
             return ReservationResult.Fail("Rezerwacja nie istnieje.");
 
-        if (reservation.Start <= DateTime.Now)
+        var now = _timeProvider.GetLocalNow().DateTime;
+        if (reservation.Start <= now)
             return ReservationResult.Fail("Nie można anulować rezerwacji, która już się rozpoczęła.");
 
         reservation.IsCancelled = true;
-        reservation.CancelledAt = DateTime.Now;
+        reservation.CancelledAt = now;
         reservation.CancelReason = reason ?? DefaultCancelReason;
 
         await _context.SaveChangesAsync();
@@ -154,6 +167,7 @@ public class ReservationService : IReservationService
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
 
-        return reservation != null && reservation.Start > DateTime.Now;
+        var now = _timeProvider.GetLocalNow().DateTime;
+        return reservation != null && reservation.Start > now;
     }
 }

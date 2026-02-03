@@ -280,6 +280,86 @@ public class BookingRulesTests
 
     #endregion
 
+    #region ValidateTimeRangeForService
+
+    [Fact]
+    public void ValidateTimeRangeForService_WhenValid_ReturnsNull()
+    {
+        var now = new DateTime(2026, 1, 15, 9, 0, 0);
+        var start = new DateTime(2026, 1, 16, 10, 0, 0);
+        var end = new DateTime(2026, 1, 16, 11, 0, 0);
+
+        var result = BookingRules.ValidateTimeRangeForService(start, end, now);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void ValidateTimeRangeForService_WhenEndEqualsStart_ReturnsError()
+    {
+        var now = new DateTime(2026, 1, 15, 9, 0, 0);
+        var sameTime = new DateTime(2026, 1, 16, 10, 0, 0);
+
+        var result = BookingRules.ValidateTimeRangeForService(sameTime, sameTime, now);
+
+        result.Should().NotBeNull();
+        result.Should().Contain("zakończenia");
+    }
+
+    [Fact]
+    public void ValidateTimeRangeForService_WhenEndBeforeStart_ReturnsError()
+    {
+        var now = new DateTime(2026, 1, 15, 9, 0, 0);
+        var start = new DateTime(2026, 1, 16, 12, 0, 0);
+        var end = new DateTime(2026, 1, 16, 10, 0, 0);
+
+        var result = BookingRules.ValidateTimeRangeForService(start, end, now);
+
+        result.Should().NotBeNull();
+        result.Should().Contain("zakończenia");
+    }
+
+    [Fact]
+    public void ValidateTimeRangeForService_WhenStartInPast_ReturnsError()
+    {
+        var now = new DateTime(2026, 1, 15, 9, 0, 0);
+        var start = new DateTime(2026, 1, 14, 10, 0, 0);
+        var end = new DateTime(2026, 1, 14, 11, 0, 0);
+
+        var result = BookingRules.ValidateTimeRangeForService(start, end, now);
+
+        result.Should().NotBeNull();
+        result.Should().Contain("przeszłości");
+    }
+
+    [Fact]
+    public void ValidateTimeRangeForService_WhenOutsideBusinessHours_ReturnsError()
+    {
+        var now = new DateTime(2026, 1, 15, 9, 0, 0);
+        var start = new DateTime(2026, 1, 16, 6, 0, 0);
+        var end = new DateTime(2026, 1, 16, 7, 0, 0);
+
+        var result = BookingRules.ValidateTimeRangeForService(start, end, now);
+
+        result.Should().NotBeNull();
+        result.Should().Contain("godzinach pracy");
+    }
+
+    [Fact]
+    public void ValidateTimeRangeForService_WhenDurationExceedsMax_ReturnsError()
+    {
+        var now = new DateTime(2026, 1, 15, 9, 0, 0);
+        var start = new DateTime(2026, 1, 16, 8, 0, 0);
+        var end = new DateTime(2026, 1, 16, 18, 0, 0);
+
+        var result = BookingRules.ValidateTimeRangeForService(start, end, now);
+
+        result.Should().NotBeNull();
+        result.Should().Contain("8");
+    }
+
+    #endregion
+
     #region GetDefaultTimeSlot
 
     [Fact]

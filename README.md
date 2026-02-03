@@ -1,5 +1,7 @@
 ﻿# OfficeBooking – System rezerwacji sal konferencyjnych
 
+[![CI](https://github.com/LukasMicek/OfficeBooking/actions/workflows/ci.yml/badge.svg)](https://github.com/LukasMicek/OfficeBooking/actions/workflows/ci.yml)
+
 ## Wymagania
 - .NET 8 SDK
 - Visual Studio 2022 (lub nowsze)
