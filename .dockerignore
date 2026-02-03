@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+.vs/
+.git/
+.gitignore
+.gitattributes
+*.user
+*.suo
+TestResults/
+*.db
+*.db-shm
+*.db-wal
+.claude/
