@@ -22,6 +22,7 @@ builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<IEquipmentService, EquipmentService>();
 builder.Services.AddScoped<IAdminReservationService, AdminReservationService>();
+builder.Services.AddScoped<IRoomUsageReportService, RoomUsageReportService>();
 
 var app = builder.Build();
 
