@@ -88,6 +88,28 @@ public static class BookingRules
         }
     }
 
+    // Service-level validation (simpler, returns string error or null)
+    public static string? ValidateTimeRangeForService(DateTime start, DateTime end, DateTime now)
+    {
+        if (end <= start)
+            return "Data i godzina zakończenia muszą być późniejsze niż rozpoczęcia.";
+
+        if (start < now)
+            return "Nie można utworzyć rezerwacji w przeszłości.";
+
+        if (!IsWithinBusinessHours(start.TimeOfDay))
+            return "Godzina rozpoczęcia musi być w godzinach pracy (08:00–20:00).";
+
+        if (!IsWithinBusinessHours(end.TimeOfDay))
+            return "Godzina zakończenia musi być w godzinach pracy (08:00–20:00).";
+
+        var duration = end - start;
+        if (duration > MaxReservationDuration)
+            return $"Maksymalny czas rezerwacji to {MaxReservationDuration.TotalHours} godzin.";
+
+        return null;
+    }
+
     // Returns next available hour slot, or tomorrow 9-10 if outside business hours
     public static (DateTime start, DateTime end) GetDefaultTimeSlot()
     {

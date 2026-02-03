@@ -7,10 +7,15 @@ namespace OfficeBooking.Tests.Integration;
 public class ReservationServiceTests : IDisposable
 {
     private readonly TestDbFactory _dbFactory;
+    private readonly FakeTimeProvider _timeProvider;
+    private readonly DateTime _now;
 
     public ReservationServiceTests()
     {
         _dbFactory = new TestDbFactory();
+        // Use a fixed "now" for deterministic tests
+        _now = new DateTime(2026, 1, 15, 9, 0, 0);
+        _timeProvider = new FakeTimeProvider(_now);
     }
 
     public void Dispose()
@@ -27,15 +32,15 @@ public class ReservationServiceTests : IDisposable
         context.Rooms.Add(room);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context);
+        var service = new ReservationService(context, _timeProvider);
         var request = new CreateReservationRequest(
             RoomId: room.Id,
             UserId: "user-123",
             Title: "Team Meeting",
             Notes: "Weekly sync",
             AttendeesCount: 5,
-            Start: DateTime.Now.AddDays(1).Date.AddHours(10),
-            End: DateTime.Now.AddDays(1).Date.AddHours(11)
+            Start: _now.AddDays(1).Date.AddHours(10),
+            End: _now.AddDays(1).Date.AddHours(11)
         );
 
         // Act
@@ -63,15 +68,15 @@ public class ReservationServiceTests : IDisposable
         context.Rooms.Add(room);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context);
+        var service = new ReservationService(context, _timeProvider);
         var request = new CreateReservationRequest(
             RoomId: room.Id,
             UserId: "user-123",
             Title: "Big Meeting",
             Notes: null,
             AttendeesCount: 10,
-            Start: DateTime.Now.AddDays(1).Date.AddHours(10),
-            End: DateTime.Now.AddDays(1).Date.AddHours(11)
+            Start: _now.AddDays(1).Date.AddHours(10),
+            End: _now.AddDays(1).Date.AddHours(11)
         );
 
         // Act
@@ -98,21 +103,21 @@ public class ReservationServiceTests : IDisposable
             UserId = "user-456",
             Title = "Existing Meeting",
             AttendeesCount = 3,
-            Start = DateTime.Now.AddDays(1).Date.AddHours(10),
-            End = DateTime.Now.AddDays(1).Date.AddHours(11)
+            Start = _now.AddDays(1).Date.AddHours(10),
+            End = _now.AddDays(1).Date.AddHours(11)
         };
         context.Reservations.Add(existingReservation);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context);
+        var service = new ReservationService(context, _timeProvider);
         var request = new CreateReservationRequest(
             RoomId: room.Id,
             UserId: "user-123",
             Title: "Overlapping Meeting",
             Notes: null,
             AttendeesCount: 5,
-            Start: DateTime.Now.AddDays(1).Date.AddHours(10).AddMinutes(30),
-            End: DateTime.Now.AddDays(1).Date.AddHours(11).AddMinutes(30)
+            Start: _now.AddDays(1).Date.AddHours(10).AddMinutes(30),
+            End: _now.AddDays(1).Date.AddHours(11).AddMinutes(30)
         );
 
         // Act
@@ -129,15 +134,15 @@ public class ReservationServiceTests : IDisposable
     {
         // Arrange
         using var context = _dbFactory.CreateContext();
-        var service = new ReservationService(context);
+        var service = new ReservationService(context, _timeProvider);
         var request = new CreateReservationRequest(
             RoomId: 999,
             UserId: "user-123",
             Title: "Meeting",
             Notes: null,
             AttendeesCount: 5,
-            Start: DateTime.Now.AddDays(1).Date.AddHours(10),
-            End: DateTime.Now.AddDays(1).Date.AddHours(11)
+            Start: _now.AddDays(1).Date.AddHours(10),
+            End: _now.AddDays(1).Date.AddHours(11)
         );
 
         // Act
@@ -163,23 +168,23 @@ public class ReservationServiceTests : IDisposable
             UserId = "user-456",
             Title = "Cancelled Meeting",
             AttendeesCount = 3,
-            Start = DateTime.Now.AddDays(1).Date.AddHours(10),
-            End = DateTime.Now.AddDays(1).Date.AddHours(11),
+            Start = _now.AddDays(1).Date.AddHours(10),
+            End = _now.AddDays(1).Date.AddHours(11),
             IsCancelled = true,
-            CancelledAt = DateTime.Now
+            CancelledAt = _now.AddHours(-1)
         };
         context.Reservations.Add(cancelledReservation);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context);
+        var service = new ReservationService(context, _timeProvider);
         var request = new CreateReservationRequest(
             RoomId: room.Id,
             UserId: "user-123",
             Title: "New Meeting",
             Notes: null,
             AttendeesCount: 5,
-            Start: DateTime.Now.AddDays(1).Date.AddHours(10),
-            End: DateTime.Now.AddDays(1).Date.AddHours(11)
+            Start: _now.AddDays(1).Date.AddHours(10),
+            End: _now.AddDays(1).Date.AddHours(11)
         );
 
         // Act
@@ -205,21 +210,21 @@ public class ReservationServiceTests : IDisposable
             UserId = "user-456",
             Title = "Morning Meeting",
             AttendeesCount = 3,
-            Start = DateTime.Now.AddDays(1).Date.AddHours(9),
-            End = DateTime.Now.AddDays(1).Date.AddHours(10)
+            Start = _now.AddDays(1).Date.AddHours(9),
+            End = _now.AddDays(1).Date.AddHours(10)
         };
         context.Reservations.Add(existingReservation);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context);
+        var service = new ReservationService(context, _timeProvider);
         var request = new CreateReservationRequest(
             RoomId: room.Id,
             UserId: "user-123",
             Title: "Afternoon Meeting",
             Notes: null,
             AttendeesCount: 5,
-            Start: DateTime.Now.AddDays(1).Date.AddHours(10),
-            End: DateTime.Now.AddDays(1).Date.AddHours(11)
+            Start: _now.AddDays(1).Date.AddHours(10),
+            End: _now.AddDays(1).Date.AddHours(11)
         );
 
         // Act
