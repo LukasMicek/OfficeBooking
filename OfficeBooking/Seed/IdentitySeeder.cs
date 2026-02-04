@@ -1,15 +1,14 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace OfficeBooking.Seed
 {
     public static class IdentitySeeder
     {
-        public static async Task SeedAsync(IServiceProvider services)
+        public static async Task SeedRolesAsync(IServiceProvider services)
         {
             using var scope = services.CreateScope();
-
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
             string[] roles = { "Admin", "User" };
 
@@ -20,9 +19,21 @@ namespace OfficeBooking.Seed
                     await roleManager.CreateAsync(new IdentityRole(role));
                 }
             }
+        }
 
-            var adminEmail = "admin@local";
-            var adminPassword = "Admin123!";
+        public static async Task SeedAdminAsync(IServiceProvider services)
+        {
+            var adminEmail = Environment.GetEnvironmentVariable("SEED_ADMIN_EMAIL");
+            var adminPassword = Environment.GetEnvironmentVariable("SEED_ADMIN_PASSWORD");
+
+            if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+            {
+                return;
+            }
+
+            using var scope = services.CreateScope();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
             var admin = await userManager.FindByEmailAsync(adminEmail);
             if (admin == null)
@@ -37,9 +48,12 @@ namespace OfficeBooking.Seed
                 var result = await userManager.CreateAsync(admin, adminPassword);
                 if (!result.Succeeded)
                 {
-                    throw new Exception("Nie udało się utworzyć konta admin: " +
-                                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                    logger.LogError("Failed to create admin account: {Errors}",
+                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                    return;
                 }
+
+                logger.LogInformation("Admin account created: {Email}", adminEmail);
             }
 
             if (!await userManager.IsInRoleAsync(admin, "Admin"))

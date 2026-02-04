@@ -23,7 +23,7 @@ To run locally:
 2. Clone the repository
 3. Run `dotnet run --project OfficeBooking`
 
-The application uses SQLite and automatically creates the database file `officebooking.db` on first run.
+The application uses SQLite and automatically creates the database file on first run.
 
 Alternatively, run with Docker:
 ```bash
@@ -31,9 +31,29 @@ docker build -t officebooking .
 docker run -p 8080:8080 officebooking
 ```
 
-## Default Accounts
-- **Admin**: admin@local / Admin123!
-- **User**: Register through the application
+## Development Seeding
+In Development environment, you can seed an admin account and demo data using environment variables:
+
+```bash
+# Seed admin account
+SEED_ADMIN=true \
+SEED_ADMIN_EMAIL=your-email@example.com \
+SEED_ADMIN_PASSWORD=YourSecurePassword123! \
+dotnet run --project OfficeBooking
+
+# Seed demo rooms and equipment
+SEED_DEMO_DATA=true \
+dotnet run --project OfficeBooking
+```
+
+| Variable | Description |
+|----------|-------------|
+| `SEED_ADMIN` | Set to `true` to enable admin seeding (Development only) |
+| `SEED_ADMIN_EMAIL` | Admin account email address |
+| `SEED_ADMIN_PASSWORD` | Admin account password (must meet Identity requirements) |
+| `SEED_DEMO_DATA` | Set to `true` to seed sample rooms and equipment (Development only) |
+
+**Note:** If `SEED_ADMIN_EMAIL` or `SEED_ADMIN_PASSWORD` are missing, admin seeding is skipped silently.
 
 ## Testing & CI/CD
 The project uses xUnit with FluentAssertions for testing. Tests are organized into:
