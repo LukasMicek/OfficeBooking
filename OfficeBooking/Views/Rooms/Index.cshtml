@@ -6,31 +6,31 @@
 
 <partial name="_PageHeader" model='("Sale", "Zarządzanie salami konferencyjnymi oraz przypisanym wyposażeniem.")' />
 
-<p>
-    <a asp-action="Create">Dodaj salę</a>
+<p class="mb-3">
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Dodaj nową salę
+    </a>
 </p>
-<table class="table">
-    <thead>
+
+<table class="table table-hover align-middle shadow-sm">
+    <thead class="table-light">
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Capacity)
-            </th>
+            <th>@Html.DisplayNameFor(model => model.Name)</th>
+            <th>@Html.DisplayNameFor(model => model.Capacity)</th>
             <th>Wyposażenie</th>
-            <th></th>
+            <th class="text-end">Akcje</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Capacity)
-            </td>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="fw-bold">
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Capacity) osób
+                </td>
                 <td>
                     @{
                         var equipmentNames = item.RoomEquipments
@@ -41,20 +41,25 @@
 
                     @if (equipmentNames.Count == 0)
                     {
-                        <span class="text-muted">Brak</span>
+                        <span class="text-muted small fst-italic">Brak wyposażenia</span>
                     }
                     else
                     {
-                        @string.Join(", ", equipmentNames)
+                        // Zmiana: Wyświetlanie jako badge zamiast zwykłego tekstu
+                        foreach (var eq in equipmentNames)
+                        {
+                            <span class="badge bg-info text-dark me-1">@eq</span>
+                        }
                     }
                 </td>
-
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edytuj</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Detale</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Usuń</a>
-            </td>
-        </tr>
-}
+                <td class="text-end">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-secondary">Edytuj</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-secondary">Detale</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger">Usuń</a>
+                    </div>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

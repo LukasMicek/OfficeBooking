@@ -6,40 +6,43 @@
 
 <partial name="_PageHeader" model='("Moje rezerwacje", "Tutaj widzisz aktywne rezerwacje i możesz je edytować lub anulować przed rozpoczęciem.")' />
 
-<p class="mt-2">
-    <a asp-controller="Reservations" asp-action="History">Zobacz historię (anulowane)</a>
-</p>
+<div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+    <a asp-controller="Reservations" asp-action="History" class="btn btn-outline-secondary btn-sm">
+        Zobacz historię (zakończone/anulowane)
+    </a>
+</div>
 
 @if (!Model.Any())
 {
-    <div class="alert alert-info mt-3">
-        Nie masz jeszcze żadnych rezerwacji.
+    <div class="text-center p-5 bg-light rounded border">
+        <h4 class="text-muted">Nie masz jeszcze żadnych nadchodzących rezerwacji.</h4>
+        <p>Planujesz spotkanie?</p>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-2">Znajdź wolną salę</a>
     </div>
 }
 else
 {
-    <table class="table table-striped mt-3">
-        <thead>
+    <table class="table table-hover align-middle mt-3">
+        <thead class="table-light">
             <tr>
                 <th>Sala</th>
                 <th>Tytuł</th>
-                <th>Od</th>
-                <th>Do</th>
+                <th class="text-nowrap">Od</th>
+                <th class="text-nowrap">Do</th>
                 <th>Uczestnicy</th>
                 <th>Status</th>
-                <th></th>
-                <th></th>
+                <th class="text-end">Akcje</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var r in Model)
             {
                 <tr>
-                    <td>@r.Room.Name</td>
+                    <td class="fw-bold">@r.Room.Name</td>
                     <td>@r.Title</td>
-                    <td>@r.Start.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>@r.End.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>@r.AttendeesCount</td>
+                    <td class="text-nowrap">@r.Start.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="text-nowrap">@r.End.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="text-center">@r.AttendeesCount</td>
                     <td>
                         @if (r.Start > DateTime.Now)
                         {
@@ -50,10 +53,10 @@ else
                             <span class="badge bg-secondary">W trakcie / minęła</span>
                         }
                     </td>
-                    <td>
+                    <td class="text-end">
                         @if (r.Start > DateTime.Now)
                         {
-                            <a class="btn btn-sm btn-outline-primary me-2"
+                            <a class="btn btn-sm btn-outline-primary me-1"
                                asp-controller="Reservations"
                                asp-action="Edit"
                                asp-route-id="@r.Id">
@@ -63,13 +66,14 @@ else
                             <a class="btn btn-sm btn-danger"
                                asp-controller="Reservations"
                                asp-action="Delete"
-                               asp-route-id="@r.Id">
+                               asp-route-id="@r.Id"
+                               onclick="return confirm('Czy na pewno chcesz anulować tę rezerwację?');">
                                 Anuluj
                             </a>
                         }
                         else
                         {
-                            <span class="text-muted">Nie można zmieniać po rozpoczęciu</span>
+                            <span class="text-muted small">Brak akcji</span>
                         }
                     </td>
                 </tr>

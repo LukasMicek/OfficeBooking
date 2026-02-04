@@ -6,74 +6,91 @@
 
 <partial name="_PageHeader" model='("Rezerwacje (Admin)", "Podgląd wszystkich rezerwacji i możliwość anulowania z powodem.")' />
 
-<form method="get" class="mt-3">
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="activeOnly" value="true" id="activeOnly"
-               @(Context.Request.Query["activeOnly"] == "true" ? "checked" : "") />
-        <label class="form-check-label" for="activeOnly">
-            Pokaż tylko aktywne
-        </label>
+<div class="card bg-light mb-4 mt-3">
+    <div class="card-body py-2">
+        <form method="get" class="row align-items-center g-3">
+            <div class="col-auto">
+                <span class="fw-bold text-muted">Filtry:</span>
+            </div>
+            <div class="col-auto">
+                <div class="form-check pt-1">
+                    <input class="form-check-input" type="checkbox" name="activeOnly" value="true" id="activeOnly"
+                           @(Context.Request.Query["activeOnly"] == "true" ? "checked" : "") />
+                    <label class="form-check-label" for="activeOnly">
+                        Pokaż tylko aktywne rezerwacje
+                    </label>
+                </div>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-sm btn-primary" type="submit">Zastosuj</button>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary ms-2">Wyczyść</a>
+            </div>
+        </form>
     </div>
-    <button class="btn btn-sm btn-primary mt-2" type="submit">Zastosuj</button>
-</form>
+</div>
 
 @if (!Model.Any())
 {
-    <div class="alert alert-info mt-3">Brak rezerwacji w systemie.</div>
+    <div class="alert alert-info">Brak rezerwacji spełniających kryteria.</div>
 }
 else
 {
-    <table class="table table-striped mt-3">
-        <thead>
-            <tr>
-                <th>Sala</th>
-                <th>Tytuł</th>
-                <th>Od</th>
-                <th>Do</th>
-                <th>Uczestnicy</th>
-                <th>Użytkownik</th>
-                <th>Status</th>
-                <th>Anulowano</th>
-                <th>Powód</th>
-                <th>   </th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var r in Model)
-            {
+    <div class="table-responsive">
+        <table class="table table-sm table-striped table-hover align-middle">
+            <thead class="table-dark">
                 <tr>
-                    <td>@r.RoomName</td>
-                    <td>@r.Title</td>
-                    <td>@r.Start.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>@r.End.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>@r.AttendeesCount</td>
-                    <td>@r.UserEmail</td>
-                    <td>
-                        @if (r.IsCancelled)
-                        {
-                            <span class="badge bg-secondary">Anulowana</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-success">Aktywna</span>
-                        }
-                    </td>
-                    <td>@(r.CancelledAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
-                    <td>@(string.IsNullOrWhiteSpace(r.CancelReason) ? "-" : r.CancelReason)</td>
-                    <td>
-                        @if (!r.IsCancelled)
-                        {
-                            <a class="btn btn-sm btn-warning"
-                               asp-controller="AdminReservations"
-                               asp-action="Cancel"
-                               asp-route-id="@r.Id">
-                                Anuluj
-                            </a>
-                        }
-                    </td>
+                    <th>Sala</th>
+                    <th>Tytuł</th>
+                    <th>Kiedy (Od - Do)</th>
+                    <th>Kto</th>
+                    <th>Status</th>
+                    <th>Akcje</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td>@r.RoomName</td>
+                        <td>
+                            <span class="d-block text-truncate" style="max-width: 150px;" title="@r.Title">
+                                @r.Title
+                            </span>
+                        </td>
+                        <td class="small">
+                            <div class="text-nowrap">@r.Start.ToString("yyyy-MM-dd HH:mm")</div>
+                            <div class="text-nowrap text-muted">@r.End.ToString("yyyy-MM-dd HH:mm")</div>
+                        </td>
+                        <td>
+                            <small class="d-block">@r.UserEmail</small>
+                            <small class="text-muted">(@r.AttendeesCount os.)</small>
+                        </td>
+                        <td>
+                            @if (r.IsCancelled)
+                            {
+                                <span class="badge bg-secondary">Anulowana</span>
+                            }
+                            else
+                            {
+
+                                <span class="badge bg-success">Aktywna</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!r.IsCancelled)
+                            {
+                                <a class="btn btn-sm btn-warning"
+                                   asp-controller="AdminReservations"
+                                   asp-action="Cancel"
+                                   asp-route-id="@r.Id">
+                                    Anuluj
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
