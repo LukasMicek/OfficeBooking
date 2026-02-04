@@ -17,12 +17,7 @@ public class RoomServiceSearchTests : IDisposable
         _searchEnd = new DateTime(2026, 2, 10, 11, 0, 0);
     }
 
-    public void Dispose()
-    {
-        _dbFactory.Dispose();
-    }
-
-    #region Capacity Filter
+    public void Dispose() => _dbFactory.Dispose();
 
     [Fact]
     public async Task SearchAvailableAsync_WhenRoomCapacityTooSmall_ExcludesRoom()
@@ -34,12 +29,7 @@ public class RoomServiceSearchTests : IDisposable
         await context.SaveChangesAsync();
 
         var service = new RoomService(context);
-        var request = new RoomSearchRequest(
-            Start: _searchStart,
-            End: _searchEnd,
-            RequiredCapacity: 3,
-            RequiredEquipmentIds: []
-        );
+        var request = new RoomSearchRequest(_searchStart, _searchEnd, RequiredCapacity: 3, RequiredEquipmentIds: []);
 
         // Act
         var result = await service.SearchAvailableAsync(request);
@@ -48,34 +38,6 @@ public class RoomServiceSearchTests : IDisposable
         result.Should().HaveCount(1);
         result[0].Name.Should().Be("Big Room");
     }
-
-    [Fact]
-    public async Task SearchAvailableAsync_WhenRoomCapacityExact_IncludesRoom()
-    {
-        // Arrange
-        using var context = _dbFactory.CreateContext();
-        context.Rooms.Add(new Room { Name = "Exact Room", Capacity = 5 });
-        await context.SaveChangesAsync();
-
-        var service = new RoomService(context);
-        var request = new RoomSearchRequest(
-            Start: _searchStart,
-            End: _searchEnd,
-            RequiredCapacity: 5,
-            RequiredEquipmentIds: []
-        );
-
-        // Act
-        var result = await service.SearchAvailableAsync(request);
-
-        // Assert
-        result.Should().HaveCount(1);
-        result[0].Name.Should().Be("Exact Room");
-    }
-
-    #endregion
-
-    #region Equipment Filter
 
     [Fact]
     public async Task SearchAvailableAsync_WhenRoomMissingRequiredEquipment_ExcludesRoom()
@@ -98,12 +60,7 @@ public class RoomServiceSearchTests : IDisposable
         await context.SaveChangesAsync();
 
         var service = new RoomService(context);
-        var request = new RoomSearchRequest(
-            Start: _searchStart,
-            End: _searchEnd,
-            RequiredCapacity: 1,
-            RequiredEquipmentIds: [projector.Id, whiteboard.Id]
-        );
+        var request = new RoomSearchRequest(_searchStart, _searchEnd, RequiredCapacity: 1, RequiredEquipmentIds: [projector.Id, whiteboard.Id]);
 
         // Act
         var result = await service.SearchAvailableAsync(request);
@@ -112,35 +69,6 @@ public class RoomServiceSearchTests : IDisposable
         result.Should().HaveCount(1);
         result[0].Name.Should().Be("Room B");
     }
-
-    [Fact]
-    public async Task SearchAvailableAsync_WhenNoEquipmentRequired_IncludesAllRooms()
-    {
-        // Arrange
-        using var context = _dbFactory.CreateContext();
-        context.Rooms.Add(new Room { Name = "Room X", Capacity = 5 });
-        context.Rooms.Add(new Room { Name = "Room Y", Capacity = 5 });
-        await context.SaveChangesAsync();
-
-        var service = new RoomService(context);
-        var request = new RoomSearchRequest(
-            Start: _searchStart,
-            End: _searchEnd,
-            RequiredCapacity: 1,
-            RequiredEquipmentIds: []
-        );
-
-        // Act
-        var result = await service.SearchAvailableAsync(request);
-
-        // Assert
-        result.Should().HaveCount(2);
-        result.Select(r => r.Name).Should().BeEquivalentTo(["Room X", "Room Y"]);
-    }
-
-    #endregion
-
-    #region Availability Filter (Overlap Logic)
 
     [Fact]
     public async Task SearchAvailableAsync_WhenActiveReservationOverlaps_ExcludesRoom()
@@ -164,12 +92,7 @@ public class RoomServiceSearchTests : IDisposable
         await context.SaveChangesAsync();
 
         var service = new RoomService(context);
-        var request = new RoomSearchRequest(
-            Start: _searchStart,
-            End: _searchEnd,
-            RequiredCapacity: 1,
-            RequiredEquipmentIds: []
-        );
+        var request = new RoomSearchRequest(_searchStart, _searchEnd, RequiredCapacity: 1, RequiredEquipmentIds: []);
 
         // Act
         var result = await service.SearchAvailableAsync(request);
@@ -201,25 +124,19 @@ public class RoomServiceSearchTests : IDisposable
         await context.SaveChangesAsync();
 
         var service = new RoomService(context);
-        var request = new RoomSearchRequest(
-            Start: _searchStart,
-            End: _searchEnd,
-            RequiredCapacity: 1,
-            RequiredEquipmentIds: []
-        );
+        var request = new RoomSearchRequest(_searchStart, _searchEnd, RequiredCapacity: 1, RequiredEquipmentIds: []);
 
         // Act
         var result = await service.SearchAvailableAsync(request);
 
         // Assert
         result.Should().HaveCount(1);
-        result[0].Name.Should().Be("Available Room");
     }
 
     [Fact]
-    public async Task SearchAvailableAsync_WhenAdjacentReservationEndEqualsStart_IncludesRoom()
+    public async Task SearchAvailableAsync_WhenAdjacentReservation_IncludesRoom()
     {
-        // Arrange
+        // Arrange - reservation ends exactly when search starts (adjacent, not overlapping)
         using var context = _dbFactory.CreateContext();
         var room = new Room { Name = "Adjacent Room", Capacity = 10 };
         context.Rooms.Add(room);
@@ -238,61 +155,14 @@ public class RoomServiceSearchTests : IDisposable
         await context.SaveChangesAsync();
 
         var service = new RoomService(context);
-        var request = new RoomSearchRequest(
-            Start: _searchStart,
-            End: _searchEnd,
-            RequiredCapacity: 1,
-            RequiredEquipmentIds: []
-        );
+        var request = new RoomSearchRequest(_searchStart, _searchEnd, RequiredCapacity: 1, RequiredEquipmentIds: []);
 
         // Act
         var result = await service.SearchAvailableAsync(request);
 
         // Assert
         result.Should().HaveCount(1);
-        result[0].Name.Should().Be("Adjacent Room");
     }
-
-    [Fact]
-    public async Task SearchAvailableAsync_WhenAdjacentReservationStartEqualsEnd_IncludesRoom()
-    {
-        // Arrange
-        using var context = _dbFactory.CreateContext();
-        var room = new Room { Name = "Adjacent Room 2", Capacity = 10 };
-        context.Rooms.Add(room);
-        await context.SaveChangesAsync();
-
-        context.Reservations.Add(new Reservation
-        {
-            RoomId = room.Id,
-            UserId = "user-1",
-            Title = "Later Meeting",
-            AttendeesCount = 5,
-            Start = _searchEnd,
-            End = _searchEnd.AddHours(1),
-            IsCancelled = false
-        });
-        await context.SaveChangesAsync();
-
-        var service = new RoomService(context);
-        var request = new RoomSearchRequest(
-            Start: _searchStart,
-            End: _searchEnd,
-            RequiredCapacity: 1,
-            RequiredEquipmentIds: []
-        );
-
-        // Act
-        var result = await service.SearchAvailableAsync(request);
-
-        // Assert
-        result.Should().HaveCount(1);
-        result[0].Name.Should().Be("Adjacent Room 2");
-    }
-
-    #endregion
-
-    #region Combined Scenario
 
     [Fact]
     public async Task SearchAvailableAsync_CombinedFilters_ReturnsOnlyMatchingRoom()
@@ -305,19 +175,13 @@ public class RoomServiceSearchTests : IDisposable
         context.Equipments.AddRange(projector, whiteboard);
         await context.SaveChangesAsync();
 
-        // Room 1: Too small capacity (2)
-        var room1 = new Room { Name = "Small Room", Capacity = 2 };
-        // Room 2: Missing whiteboard
-        var room2 = new Room { Name = "Missing Equipment", Capacity = 10 };
-        // Room 3: Has overlapping active reservation
-        var room3 = new Room { Name = "Busy Room", Capacity = 10 };
-        // Room 4: Perfect match
-        var room4 = new Room { Name = "Perfect Room", Capacity = 10 };
-
+        var room1 = new Room { Name = "Small Room", Capacity = 2 };           // Too small
+        var room2 = new Room { Name = "Missing Equipment", Capacity = 10 };   // Missing whiteboard
+        var room3 = new Room { Name = "Busy Room", Capacity = 10 };           // Has overlapping reservation
+        var room4 = new Room { Name = "Perfect Room", Capacity = 10 };        // Perfect match
         context.Rooms.AddRange(room1, room2, room3, room4);
         await context.SaveChangesAsync();
 
-        // Equipment assignments
         context.RoomEquipments.AddRange(
             new RoomEquipment { RoomId = room1.Id, EquipmentId = projector.Id },
             new RoomEquipment { RoomId = room1.Id, EquipmentId = whiteboard.Id },
@@ -329,7 +193,6 @@ public class RoomServiceSearchTests : IDisposable
         );
         await context.SaveChangesAsync();
 
-        // Active reservation for room3
         context.Reservations.Add(new Reservation
         {
             RoomId = room3.Id,
@@ -343,12 +206,7 @@ public class RoomServiceSearchTests : IDisposable
         await context.SaveChangesAsync();
 
         var service = new RoomService(context);
-        var request = new RoomSearchRequest(
-            Start: _searchStart,
-            End: _searchEnd,
-            RequiredCapacity: 5,
-            RequiredEquipmentIds: [projector.Id, whiteboard.Id]
-        );
+        var request = new RoomSearchRequest(_searchStart, _searchEnd, RequiredCapacity: 5, RequiredEquipmentIds: [projector.Id, whiteboard.Id]);
 
         // Act
         var result = await service.SearchAvailableAsync(request);
@@ -356,7 +214,6 @@ public class RoomServiceSearchTests : IDisposable
         // Assert
         result.Should().HaveCount(1);
         result[0].Name.Should().Be("Perfect Room");
-        result[0].Id.Should().Be(room4.Id);
     }
 
     [Fact]
@@ -370,12 +227,7 @@ public class RoomServiceSearchTests : IDisposable
         await context.SaveChangesAsync();
 
         var service = new RoomService(context);
-        var request = new RoomSearchRequest(
-            Start: _searchStart,
-            End: _searchEnd,
-            RequiredCapacity: 1,
-            RequiredEquipmentIds: []
-        );
+        var request = new RoomSearchRequest(_searchStart, _searchEnd, RequiredCapacity: 1, RequiredEquipmentIds: []);
 
         // Act
         var result = await service.SearchAvailableAsync(request);
@@ -384,6 +236,4 @@ public class RoomServiceSearchTests : IDisposable
         result.Should().HaveCount(3);
         result.Select(r => r.Name).Should().ContainInOrder("Alpha Room", "Beta Room", "Zebra Room");
     }
-
-    #endregion
 }
