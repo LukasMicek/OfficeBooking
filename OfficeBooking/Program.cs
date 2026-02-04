@@ -33,8 +33,22 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-await IdentitySeeder.SeedAsync(app.Services);
-await DemoDataSeeder.SeedAsync(app.Services);
+// Always seed roles (Admin, User)
+await IdentitySeeder.SeedRolesAsync(app.Services);
+
+// Seed admin only in Development when SEED_ADMIN=true
+if (app.Environment.IsDevelopment() &&
+    string.Equals(Environment.GetEnvironmentVariable("SEED_ADMIN"), "true", StringComparison.OrdinalIgnoreCase))
+{
+    await IdentitySeeder.SeedAdminAsync(app.Services);
+}
+
+// Seed demo data only in Development when SEED_DEMO_DATA=true
+if (app.Environment.IsDevelopment() &&
+    string.Equals(Environment.GetEnvironmentVariable("SEED_DEMO_DATA"), "true", StringComparison.OrdinalIgnoreCase))
+{
+    await DemoDataSeeder.SeedAsync(app.Services);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -61,4 +75,3 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
-
