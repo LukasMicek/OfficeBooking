@@ -67,7 +67,7 @@ public static class BookingRules
         {
             yield return new ValidationResult(
                 "Data i godzina zakończenia muszą być późniejsze niż rozpoczęcia.",
-                new[] { "EndDate", "EndTime" }
+                new[] { "EndTime" }
             );
         }
 
@@ -75,7 +75,7 @@ public static class BookingRules
         {
             yield return new ValidationResult(
                 "Nie można utworzyć rezerwacji w przeszłości.",
-                new[] { "StartDate", "StartTime" }
+                new[] { "StartDate" }
             );
         }
 
@@ -84,7 +84,7 @@ public static class BookingRules
         {
             yield return new ValidationResult(
                 $"Maksymalny czas rezerwacji to {MaxReservationDuration.TotalHours} godzin.",
-                new[] { "EndDate", "EndTime" }
+                new[] { "EndTime" }
             );
         }
     }
