@@ -139,7 +139,7 @@ public class ReservationsController : Controller
             return View(vm);
         }
 
-        TempData["Success"] = "Rezerwacja została utworzona.";
+        TempData["Success"] = "Reservation created successfully.";
         return RedirectToAction("Index", "Home");
     }
 
@@ -157,7 +157,7 @@ public class ReservationsController : Controller
         var now = _timeProvider.GetLocalNow().DateTime;
         if (reservation.Start <= now)
         {
-            TempData["Error"] = "Nie można anulować rezerwacji, która już się rozpoczęła.";
+            TempData["Error"] = "Cannot cancel a reservation that has already started.";
             return RedirectToAction(nameof(My));
         }
 
@@ -180,7 +180,7 @@ public class ReservationsController : Controller
             return RedirectToAction(nameof(My));
         }
 
-        TempData["Success"] = "Rezerwacja została anulowana.";
+        TempData["Success"] = "Reservation cancelled successfully.";
         return RedirectToAction(nameof(My));
     }
 
@@ -198,7 +198,7 @@ public class ReservationsController : Controller
         var now = _timeProvider.GetLocalNow().DateTime;
         if (reservation.Start <= now)
         {
-            TempData["Error"] = "Nie można edytować rezerwacji, która już się rozpoczęła.";
+            TempData["Error"] = "Cannot edit a reservation that has already started.";
             return RedirectToAction(nameof(My));
         }
 
@@ -259,7 +259,7 @@ public class ReservationsController : Controller
             return View(vm);
         }
 
-        TempData["Success"] = "Rezerwacja została zaktualizowana.";
+        TempData["Success"] = "Reservation updated successfully.";
         return RedirectToAction(nameof(My));
     }
 }

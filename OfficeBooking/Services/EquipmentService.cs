@@ -37,7 +37,7 @@ public class EquipmentService : IEquipmentService
         var equipment = await _context.Equipments.FindAsync(id);
         if (equipment == null)
         {
-            return EquipmentResult.Fail("Wyposażenie nie istnieje.");
+            return EquipmentResult.Fail("Equipment does not exist.");
         }
 
         equipment.Name = name;
@@ -50,7 +50,7 @@ public class EquipmentService : IEquipmentService
         {
             if (!await ExistsAsync(id))
             {
-                return EquipmentResult.Fail("Wyposażenie nie istnieje.");
+                return EquipmentResult.Fail("Equipment does not exist.");
             }
             throw;
         }
@@ -63,7 +63,7 @@ public class EquipmentService : IEquipmentService
         var equipment = await _context.Equipments.FindAsync(id);
         if (equipment == null)
         {
-            return EquipmentResult.Fail("Wyposażenie nie istnieje.");
+            return EquipmentResult.Fail("Equipment does not exist.");
         }
 
         _context.Equipments.Remove(equipment);

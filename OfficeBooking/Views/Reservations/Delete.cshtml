@@ -1,30 +1,30 @@
-﻿@model OfficeBooking.Models.Reservation
+@model OfficeBooking.Models.Reservation
 
 @{
-    ViewData["Title"] = "Anuluj rezerwację";
+    ViewData["Title"] = "Cancel Reservation";
 }
 
-<h2>Anuluj rezerwację</h2>
+<h2>Cancel Reservation</h2>
 
 <div class="alert alert-warning mt-3">
-    Czy na pewno chcesz anulować tę rezerwację?
+    Are you sure you want to cancel this reservation?
 </div>
 
 
 <dl class="row mt-3">
-    <dt class="col-sm-2">Sala</dt>
+    <dt class="col-sm-2">Room</dt>
     <dd class="col-sm-10">@Model.Room.Name</dd>
 
-    <dt class="col-sm-2">Tytuł</dt>
+    <dt class="col-sm-2">Title</dt>
     <dd class="col-sm-10">@Model.Title</dd>
 
-    <dt class="col-sm-2">Od</dt>
+    <dt class="col-sm-2">From</dt>
     <dd class="col-sm-10">@Model.Start.ToString("yyyy-MM-dd HH:mm")</dd>
 
-    <dt class="col-sm-2">Do</dt>
+    <dt class="col-sm-2">To</dt>
     <dd class="col-sm-10">@Model.End.ToString("yyyy-MM-dd HH:mm")</dd>
 
-    <dt class="col-sm-2">Uczestnicy</dt>
+    <dt class="col-sm-2">Attendees</dt>
     <dd class="col-sm-10">@Model.AttendeesCount</dd>
 </dl>
 
@@ -32,7 +32,6 @@
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
 
-    <button type="submit" class="btn btn-warning">Anuluj</button>
-    <a class="btn btn-secondary" asp-action="My">Wróć</a>
+    <button type="submit" class="btn btn-warning">Cancel reservation</button>
+    <a class="btn btn-secondary" asp-action="My">Back</a>
 </form>
-

@@ -44,7 +44,7 @@ public class ReservationServiceTimeValidationTests : IDisposable
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("przeszłości");
+        result.Error.Should().Contain("Cannot create a reservation in the past");
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class ReservationServiceTimeValidationTests : IDisposable
 
         // Assert
         result.Success.Should().BeFalse();
-        result.Error.Should().Contain("zakończenia");
+        result.Error.Should().Contain("End date/time must be later");
     }
 
     [Fact]

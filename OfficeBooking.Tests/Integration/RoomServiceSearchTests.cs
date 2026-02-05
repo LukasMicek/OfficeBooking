@@ -136,7 +136,7 @@ public class RoomServiceSearchTests : IDisposable
     [Fact]
     public async Task SearchAvailableAsync_WhenAdjacentReservation_IncludesRoom()
     {
-        // Arrange - reservation ends exactly when search starts (adjacent, not overlapping)
+        // Arrange reservation ends exactly when search starts
         using var context = _dbFactory.CreateContext();
         var room = new Room { Name = "Adjacent Room", Capacity = 10 };
         context.Rooms.Add(room);

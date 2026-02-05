@@ -32,7 +32,7 @@ namespace OfficeBooking.Controllers
             var vm = await _adminReservationService.GetCancelViewModelAsync(id);
             if (vm == null)
             {
-                TempData["Error"] = "Ta rezerwacja nie istnieje lub jest już anulowana.";
+                TempData["Error"] = "This reservation does not exist or is already cancelled.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -57,12 +57,12 @@ namespace OfficeBooking.Controllers
                     return NotFound();
 
                 case AdminCancelStatus.AlreadyCancelled:
-                    TempData["Error"] = "Ta rezerwacja jest już anulowana.";
+                    TempData["Error"] = "This reservation is already cancelled.";
                     return RedirectToAction(nameof(Index));
 
                 case AdminCancelStatus.Success:
                 default:
-                    TempData["Success"] = "Rezerwacja została anulowana.";
+                    TempData["Success"] = "Reservation cancelled successfully.";
                     return RedirectToAction(nameof(Index));
             }
         }

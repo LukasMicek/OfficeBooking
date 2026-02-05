@@ -1,4 +1,4 @@
-﻿using OfficeBooking.Models;
+using OfficeBooking.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace OfficeBooking.ViewModels
@@ -9,11 +9,11 @@ namespace OfficeBooking.ViewModels
 
         [Required]
         [StringLength(80)]
-        [Display(Name = "Nazwa")]
+        [Display(Name = "Name")]
         public string Name { get; set; } = string.Empty;
 
         [Range(1, 500)]
-        [Display(Name = "Pojemność")]
+        [Display(Name = "Capacity")]
         public int Capacity { get; set; }
 
         public List<int> SelectedEquipmentIds { get; set; } = new();

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -20,27 +20,27 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Wyszukiwarka</a>
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Search</a>
                         </li>
                         @if ((User.Identity?.IsAuthenticated ?? false) && !User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-light" asp-controller="Reservations" asp-action="My">Moje rezerwacje</a>
+                                <a class="nav-link text-light" asp-controller="Reservations" asp-action="My">My Reservations</a>
                             </li>
                         }
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-light" asp-controller="Rooms" asp-action="Index">Sale</a>
+                                <a class="nav-link text-light" asp-controller="Rooms" asp-action="Index">Rooms</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-light" asp-controller="Equipments" asp-action="Index">Wyposażenie</a>
+                                <a class="nav-link text-light" asp-controller="Equipments" asp-action="Index">Equipment</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-light" asp-controller="AdminReservations" asp-action="Index">Rezerwacje (Admin)</a>
+                                <a class="nav-link text-light" asp-controller="AdminReservations" asp-action="Index">Reservations (Admin)</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-light" asp-controller="AdminReports" asp-action="RoomUsage">Raport obłożenia</a>
+                                <a class="nav-link text-light" asp-controller="AdminReports" asp-action="RoomUsage">Usage Report</a>
                             </li>
                         }
                     </ul>
