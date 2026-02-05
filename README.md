@@ -25,7 +25,12 @@ To run locally:
 
 The application uses SQLite and automatically creates the database file on first run.
 
-Alternatively, run with Docker:
+Alternatively, run with Docker Compose:
+```bash
+docker compose up
+```
+
+Or build and run manually:
 ```bash
 docker build -t officebooking .
 docker run -p 8080:8080 officebooking
