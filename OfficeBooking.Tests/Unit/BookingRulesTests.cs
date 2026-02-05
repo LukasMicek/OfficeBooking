@@ -43,8 +43,8 @@ public class BookingRulesTests
         var resultEqual = BookingRules.ValidateTimeRangeForService(time, time, now);
         var resultBefore = BookingRules.ValidateTimeRangeForService(time.AddHours(1), time, now);
 
-        resultEqual.Should().Contain("zakończenia");
-        resultBefore.Should().Contain("zakończenia");
+        resultEqual.Should().Contain("End date/time must be later");
+        resultBefore.Should().Contain("End date/time must be later");
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class BookingRulesTests
             new DateTime(2026, 1, 14, 11, 0, 0),
             now);
 
-        result.Should().Contain("przeszłości");
+        result.Should().Contain("Cannot create a reservation in the past");
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class BookingRulesTests
             new DateTime(2026, 1, 16, 7, 0, 0),
             now);
 
-        result.Should().Contain("godzinach pracy");
+        result.Should().Contain("within business hours");
     }
 
     [Fact]

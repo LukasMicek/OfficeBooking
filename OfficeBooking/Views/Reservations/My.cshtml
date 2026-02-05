@@ -1,23 +1,23 @@
 @model IEnumerable<OfficeBooking.ViewModels.MyReservationViewModel>
 
 @{
-    ViewData["Title"] = "Moje rezerwacje";
+    ViewData["Title"] = "My Reservations";
 }
 
-<partial name="_PageHeader" model='("Moje rezerwacje", "Tutaj widzisz aktywne rezerwacje i możesz je edytować lub anulować przed rozpoczęciem.")' />
+<partial name="_PageHeader" model='("My Reservations", "View your active reservations and edit or cancel them before they start.")' />
 
 <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
     <a asp-controller="Reservations" asp-action="History" class="btn btn-outline-secondary btn-sm">
-        Zobacz historię (zakończone/anulowane)
+        View history (completed/cancelled)
     </a>
 </div>
 
 @if (!Model.Any())
 {
     <div class="text-center p-5 bg-light rounded border">
-        <h4 class="text-muted">Nie masz jeszcze żadnych nadchodzących rezerwacji.</h4>
-        <p>Planujesz spotkanie?</p>
-        <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-2">Znajdź wolną salę</a>
+        <h4 class="text-muted">You don't have any upcoming reservations yet.</h4>
+        <p>Planning a meeting?</p>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-2">Find an available room</a>
     </div>
 }
 else
@@ -25,13 +25,13 @@ else
     <table class="table table-hover align-middle mt-3">
         <thead class="table-light">
             <tr>
-                <th>Sala</th>
-                <th>Tytuł</th>
-                <th class="text-nowrap">Od</th>
-                <th class="text-nowrap">Do</th>
-                <th>Uczestnicy</th>
+                <th>Room</th>
+                <th>Title</th>
+                <th class="text-nowrap">From</th>
+                <th class="text-nowrap">To</th>
+                <th>Attendees</th>
                 <th>Status</th>
-                <th class="text-end">Akcje</th>
+                <th class="text-end">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -46,11 +46,11 @@ else
                     <td>
                         @if (r.IsUpcoming)
                         {
-                            <span class="badge bg-success">Aktywna</span>
+                            <span class="badge bg-success">Active</span>
                         }
                         else
                         {
-                            <span class="badge bg-secondary">W trakcie / minęła</span>
+                            <span class="badge bg-secondary">In progress / past</span>
                         }
                     </td>
                     <td class="text-end">
@@ -60,20 +60,20 @@ else
                                asp-controller="Reservations"
                                asp-action="Edit"
                                asp-route-id="@r.Id">
-                                Edytuj
+                                Edit
                             </a>
 
                             <a class="btn btn-sm btn-danger"
                                asp-controller="Reservations"
                                asp-action="Delete"
                                asp-route-id="@r.Id"
-                               onclick="return confirm('Czy na pewno chcesz anulować tę rezerwację?');">
-                                Anuluj
+                               onclick="return confirm('Are you sure you want to cancel this reservation?');">
+                                Cancel
                             </a>
                         }
                         else
                         {
-                            <span class="text-muted small">Brak akcji</span>
+                            <span class="text-muted small">No actions</span>
                         }
                     </td>
                 </tr>

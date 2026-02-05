@@ -10,7 +10,7 @@ public class ReservationService : IReservationService
     private readonly ApplicationDbContext _context;
     private readonly TimeProvider _timeProvider;
 
-    private const string DefaultCancelReason = "Anulowane przez użytkownika";
+    private const string DefaultCancelReason = "Cancelled by user";
 
     public ReservationService(ApplicationDbContext context, TimeProvider timeProvider)
     {
@@ -71,10 +71,10 @@ public class ReservationService : IReservationService
             .FirstOrDefaultAsync(r => r.Id == request.RoomId);
 
         if (room == null)
-            return ReservationResult.Fail("Sala nie istnieje.");
+            return ReservationResult.Fail("Room does not exist.");
 
         if (request.AttendeesCount > room.Capacity)
-            return ReservationResult.Fail($"Liczba uczestników nie może przekraczać pojemności sali ({room.Capacity}).");
+            return ReservationResult.Fail($"Number of attendees cannot exceed room capacity ({room.Capacity}).");
 
         var existingReservations = await _context.Reservations
             .AsNoTracking()
@@ -82,7 +82,7 @@ public class ReservationService : IReservationService
             .ToListAsync();
 
         if (ReservationConflict.HasConflict(existingReservations, request.Start, request.End))
-            return ReservationResult.Fail("Sala jest już zajęta w wybranym przedziale czasu.");
+            return ReservationResult.Fail("Room is already booked for the selected time slot.");
 
         var reservation = new Reservation
         {
@@ -108,18 +108,18 @@ public class ReservationService : IReservationService
             .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
 
         if (reservation == null)
-            return ReservationResult.Fail("Rezerwacja nie istnieje.");
+            return ReservationResult.Fail("Reservation does not exist.");
 
         var now = _timeProvider.GetLocalNow().DateTime;
         if (reservation.Start <= now)
-            return ReservationResult.Fail("Nie można edytować rezerwacji, która już się rozpoczęła.");
+            return ReservationResult.Fail("Cannot edit a reservation that has already started.");
 
         var timeError = BookingRules.ValidateTimeRangeForService(request.Start, request.End, now);
         if (timeError != null)
             return ReservationResult.Fail(timeError);
 
         if (request.AttendeesCount > reservation.Room.Capacity)
-            return ReservationResult.Fail($"Liczba uczestników nie może przekraczać pojemności sali ({reservation.Room.Capacity}).");
+            return ReservationResult.Fail($"Number of attendees cannot exceed room capacity ({reservation.Room.Capacity}).");
 
         var existingReservations = await _context.Reservations
             .AsNoTracking()
@@ -127,7 +127,7 @@ public class ReservationService : IReservationService
             .ToListAsync();
 
         if (ReservationConflict.HasConflict(existingReservations, request.Start, request.End, ignoreReservationId: id))
-            return ReservationResult.Fail("Sala jest już zajęta w wybranym przedziale czasu.");
+            return ReservationResult.Fail("Room is already booked for the selected time slot.");
 
         reservation.Title = request.Title;
         reservation.Notes = request.Notes;
@@ -146,11 +146,11 @@ public class ReservationService : IReservationService
             .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
 
         if (reservation == null)
-            return ReservationResult.Fail("Rezerwacja nie istnieje.");
+            return ReservationResult.Fail("Reservation does not exist.");
 
         var now = _timeProvider.GetLocalNow().DateTime;
         if (reservation.Start <= now)
-            return ReservationResult.Fail("Nie można anulować rezerwacji, która już się rozpoczęła.");
+            return ReservationResult.Fail("Cannot cancel a reservation that has already started.");
 
         reservation.IsCancelled = true;
         reservation.CancelledAt = now;

@@ -50,7 +50,7 @@ public static class BookingRules
         if (!IsWithinBusinessHours(startTime))
         {
             yield return new ValidationResult(
-                "Godzina rozpoczęcia musi być w godzinach pracy (08:00–20:00).",
+                "Start time must be within business hours (08:00–20:00).",
                 new[] { "StartTime" }
             );
         }
@@ -58,7 +58,7 @@ public static class BookingRules
         if (!IsWithinBusinessHours(endTime))
         {
             yield return new ValidationResult(
-                "Godzina zakończenia musi być w godzinach pracy (08:00–20:00).",
+                "End time must be within business hours (08:00–20:00).",
                 new[] { "EndTime" }
             );
         }
@@ -66,7 +66,7 @@ public static class BookingRules
         if (endDateTime <= startDateTime)
         {
             yield return new ValidationResult(
-                "Data i godzina zakończenia muszą być późniejsze niż rozpoczęcia.",
+                "End date/time must be later than start date/time.",
                 new[] { "EndTime" }
             );
         }
@@ -74,7 +74,7 @@ public static class BookingRules
         if (!allowPastBookings && startDateTime < now)
         {
             yield return new ValidationResult(
-                "Nie można utworzyć rezerwacji w przeszłości.",
+                "Cannot create a reservation in the past.",
                 new[] { "StartDate" }
             );
         }
@@ -83,7 +83,7 @@ public static class BookingRules
         if (duration > MaxReservationDuration)
         {
             yield return new ValidationResult(
-                $"Maksymalny czas rezerwacji to {MaxReservationDuration.TotalHours} godzin.",
+                $"Maximum reservation duration is {MaxReservationDuration.TotalHours} hours.",
                 new[] { "EndTime" }
             );
         }
@@ -93,20 +93,20 @@ public static class BookingRules
     public static string? ValidateTimeRangeForService(DateTime start, DateTime end, DateTime now)
     {
         if (end <= start)
-            return "Data i godzina zakończenia muszą być późniejsze niż rozpoczęcia.";
+            return "End date/time must be later than start date/time.";
 
         if (start < now)
-            return "Nie można utworzyć rezerwacji w przeszłości.";
+            return "Cannot create a reservation in the past.";
 
         if (!IsWithinBusinessHours(start.TimeOfDay))
-            return "Godzina rozpoczęcia musi być w godzinach pracy (08:00–20:00).";
+            return "Start time must be within business hours (08:00–20:00).";
 
         if (!IsWithinBusinessHours(end.TimeOfDay))
-            return "Godzina zakończenia musi być w godzinach pracy (08:00–20:00).";
+            return "End time must be within business hours (08:00–20:00).";
 
         var duration = end - start;
         if (duration > MaxReservationDuration)
-            return $"Maksymalny czas rezerwacji to {MaxReservationDuration.TotalHours} godzin.";
+            return $"Maximum reservation duration is {MaxReservationDuration.TotalHours} hours.";
 
         return null;
     }

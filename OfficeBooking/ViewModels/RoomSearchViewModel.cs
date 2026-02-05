@@ -7,31 +7,31 @@ namespace OfficeBooking.ViewModels;
 
 public class RoomSearchViewModel : IValidatableObject
 {
-    [Display(Name = "Data rozpoczęcia")]
+    [Display(Name = "Start date")]
     [DataType(DataType.Date)]
     [Required]
     public DateTime StartDate { get; set; }
 
-    [Display(Name = "Godzina rozpoczęcia")]
+    [Display(Name = "Start time")]
     [DataType(DataType.Time)]
     [Required]
     public TimeSpan StartTime { get; set; }
 
-    [Display(Name = "Data zakończenia")]
+    [Display(Name = "End date")]
     [DataType(DataType.Date)]
     [Required]
     public DateTime EndDate { get; set; }
 
-    [Display(Name = "Godzina zakończenia")]
+    [Display(Name = "End time")]
     [DataType(DataType.Time)]
     [Required]
     public TimeSpan EndTime { get; set; }
 
-    [Display(Name = "Minimalna pojemność")]
+    [Display(Name = "Minimum capacity")]
     [Range(1, 500)]
     public int RequiredCapacity { get; set; } = 1;
 
-    [Display(Name = "Wymagane wyposażenie")]
+    [Display(Name = "Required equipment")]
     public List<int> EquipmentIds { get; set; } = new();
 
     [ValidateNever]

@@ -80,7 +80,7 @@ public class RoomService : IRoomService
             .FirstOrDefaultAsync(r => r.Id == id);
 
         if (room == null)
-            return RoomResult.Fail("Sala nie istnieje.");
+            return RoomResult.Fail("Room does not exist.");
 
         room.Name = request.Name;
         room.Capacity = request.Capacity;
@@ -113,7 +113,7 @@ public class RoomService : IRoomService
             .AnyAsync(r => r.RoomId == id && !r.IsCancelled);
 
         if (hasActiveReservations)
-            return RoomResult.Fail("Nie można usunąć sali, która ma aktywne rezerwacje. Najpierw anuluj rezerwacje tej sali.");
+            return RoomResult.Fail("Cannot delete a room with active reservations. Cancel the reservations first.");
 
         var roomEquipments = await _context.RoomEquipments
             .Where(re => re.RoomId == id)
@@ -122,7 +122,7 @@ public class RoomService : IRoomService
 
         var room = await _context.Rooms.FindAsync(id);
         if (room == null)
-            return RoomResult.Fail("Sala nie istnieje.");
+            return RoomResult.Fail("Room does not exist.");
 
         _context.Rooms.Remove(room);
         await _context.SaveChangesAsync();
