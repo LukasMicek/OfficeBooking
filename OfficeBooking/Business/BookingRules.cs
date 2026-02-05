@@ -44,6 +44,7 @@ public static class BookingRules
         TimeSpan endTime,
         DateTime startDateTime,
         DateTime endDateTime,
+        DateTime now,
         bool allowPastBookings = false)
     {
         if (!IsWithinBusinessHours(startTime))
@@ -70,7 +71,7 @@ public static class BookingRules
             );
         }
 
-        if (!allowPastBookings && startDateTime < DateTime.Now)
+        if (!allowPastBookings && startDateTime < now)
         {
             yield return new ValidationResult(
                 "Nie można utworzyć rezerwacji w przeszłości.",
@@ -111,15 +112,14 @@ public static class BookingRules
     }
 
     // Returns next available hour slot, or tomorrow 9-10 if outside business hours
-    public static (DateTime start, DateTime end) GetDefaultTimeSlot()
+    public static (DateTime start, DateTime end) GetDefaultTimeSlot(DateTime now)
     {
-        var now = DateTime.Now;
         var start = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0).AddHours(1);
         var end = start.AddHours(1);
 
         if (start.TimeOfDay < WorkDayStart || end.TimeOfDay > WorkDayEnd)
         {
-            var tomorrow = DateTime.Today.AddDays(1);
+            var tomorrow = now.Date.AddDays(1);
             start = tomorrow.AddHours(9);
             end = tomorrow.AddHours(10);
         }

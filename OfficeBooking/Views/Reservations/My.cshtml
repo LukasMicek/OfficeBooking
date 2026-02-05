@@ -1,4 +1,4 @@
-﻿@model IEnumerable<OfficeBooking.Models.Reservation>
+@model IEnumerable<OfficeBooking.ViewModels.MyReservationViewModel>
 
 @{
     ViewData["Title"] = "Moje rezerwacje";
@@ -38,13 +38,13 @@ else
             @foreach (var r in Model)
             {
                 <tr>
-                    <td class="fw-bold">@r.Room.Name</td>
+                    <td class="fw-bold">@r.RoomName</td>
                     <td>@r.Title</td>
                     <td class="text-nowrap">@r.Start.ToString("yyyy-MM-dd HH:mm")</td>
                     <td class="text-nowrap">@r.End.ToString("yyyy-MM-dd HH:mm")</td>
                     <td class="text-center">@r.AttendeesCount</td>
                     <td>
-                        @if (r.Start > DateTime.Now)
+                        @if (r.IsUpcoming)
                         {
                             <span class="badge bg-success">Aktywna</span>
                         }
@@ -54,7 +54,7 @@ else
                         }
                     </td>
                     <td class="text-end">
-                        @if (r.Start > DateTime.Now)
+                        @if (r.IsUpcoming)
                         {
                             <a class="btn btn-sm btn-outline-primary me-1"
                                asp-controller="Reservations"

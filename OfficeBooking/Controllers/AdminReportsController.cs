@@ -8,16 +8,21 @@ namespace OfficeBooking.Controllers
     public class AdminReportsController : Controller
     {
         private readonly IRoomUsageReportService _roomUsageReportService;
+        private readonly TimeProvider _timeProvider;
 
-        public AdminReportsController(IRoomUsageReportService roomUsageReportService)
+        public AdminReportsController(
+            IRoomUsageReportService roomUsageReportService,
+            TimeProvider timeProvider)
         {
             _roomUsageReportService = roomUsageReportService;
+            _timeProvider = timeProvider;
         }
 
         [HttpGet]
         public async Task<IActionResult> RoomUsage(int? year, int? month)
         {
-            var vm = await _roomUsageReportService.GetReportAsync(year, month, DateTime.Today);
+            var today = DateOnly.FromDateTime(_timeProvider.GetLocalNow().DateTime);
+            var vm = await _roomUsageReportService.GetReportAsync(year, month, today.ToDateTime(TimeOnly.MinValue));
             return View(vm);
         }
     }

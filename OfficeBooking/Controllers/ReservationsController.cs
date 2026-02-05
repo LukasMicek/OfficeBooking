@@ -13,11 +13,16 @@ public class ReservationsController : Controller
 {
     private readonly IReservationService _reservationService;
     private readonly ApplicationDbContext _context;
+    private readonly TimeProvider _timeProvider;
 
-    public ReservationsController(IReservationService reservationService, ApplicationDbContext context)
+    public ReservationsController(
+        IReservationService reservationService,
+        ApplicationDbContext context,
+        TimeProvider timeProvider)
     {
         _reservationService = reservationService;
         _context = context;
+        _timeProvider = timeProvider;
     }
 
     private string? GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -33,7 +38,20 @@ public class ReservationsController : Controller
             return Forbid();
 
         var reservations = await _reservationService.GetUserReservationsAsync(userId);
-        return View(reservations);
+        var now = _timeProvider.GetLocalNow().DateTime;
+
+        var vm = reservations.Select(r => new MyReservationViewModel
+        {
+            Id = r.Id,
+            RoomName = r.Room.Name,
+            Title = r.Title,
+            Start = r.Start,
+            End = r.End,
+            AttendeesCount = r.AttendeesCount,
+            IsUpcoming = r.Start > now
+        }).ToList();
+
+        return View(vm);
     }
 
     [HttpGet]
@@ -65,14 +83,16 @@ public class ReservationsController : Controller
         if (room == null)
             return NotFound();
 
+        var today = DateOnly.FromDateTime(_timeProvider.GetLocalNow().DateTime);
+
         var vm = new ReservationCreateViewModel
         {
             RoomId = room.Id,
             RoomName = room.Name,
             RoomCapacity = room.Capacity,
-            StartDate = startDate ?? DateTime.Today,
+            StartDate = startDate ?? today.ToDateTime(TimeOnly.MinValue),
             StartTime = startTime ?? new TimeSpan(9, 0, 0),
-            EndDate = endDate ?? DateTime.Today,
+            EndDate = endDate ?? today.ToDateTime(TimeOnly.MinValue),
             EndTime = endTime ?? new TimeSpan(10, 0, 0),
             AttendeesCount = 1
         };
@@ -134,7 +154,8 @@ public class ReservationsController : Controller
         if (reservation == null)
             return NotFound();
 
-        if (reservation.Start <= DateTime.Now)
+        var now = _timeProvider.GetLocalNow().DateTime;
+        if (reservation.Start <= now)
         {
             TempData["Error"] = "Nie można anulować rezerwacji, która już się rozpoczęła.";
             return RedirectToAction(nameof(My));
@@ -174,7 +195,8 @@ public class ReservationsController : Controller
         if (reservation == null)
             return NotFound();
 
-        if (reservation.Start <= DateTime.Now)
+        var now = _timeProvider.GetLocalNow().DateTime;
+        if (reservation.Start <= now)
         {
             TempData["Error"] = "Nie można edytować rezerwacji, która już się rozpoczęła.";
             return RedirectToAction(nameof(My));

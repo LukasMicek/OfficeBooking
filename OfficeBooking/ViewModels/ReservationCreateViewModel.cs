@@ -28,7 +28,7 @@ public class ReservationCreateViewModel : IValidatableObject
     [Display(Name = "Data rozpoczęcia")]
     [DataType(DataType.Date)]
     [Required]
-    public DateTime StartDate { get; set; } = DateTime.Today;
+    public DateTime StartDate { get; set; }
 
     [Display(Name = "Godzina rozpoczęcia")]
     [DataType(DataType.Time)]
@@ -38,7 +38,7 @@ public class ReservationCreateViewModel : IValidatableObject
     [Display(Name = "Data zakończenia")]
     [DataType(DataType.Date)]
     [Required]
-    public DateTime EndDate { get; set; } = DateTime.Today;
+    public DateTime EndDate { get; set; }
 
     [Display(Name = "Godzina zakończenia")]
     [DataType(DataType.Time)]
@@ -50,11 +50,16 @@ public class ReservationCreateViewModel : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        var timeProvider = validationContext.GetService(typeof(TimeProvider)) as TimeProvider
+                           ?? TimeProvider.System;
+        var now = timeProvider.GetLocalNow().DateTime;
+
         return BookingRules.ValidateTimeRange(
             StartTime,
             EndTime,
             StartDateTime,
             EndDateTime,
+            now,
             allowPastBookings: false
         );
     }
