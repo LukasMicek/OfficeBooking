@@ -108,7 +108,14 @@
         <div class="app-card p-3 mt-4">
             <h3 class="mb-3">Available Rooms</h3>
 
-            <table class="table table-striped mt-2">
+            <div class="mb-3">
+                <input type="text"
+                       id="resultsFilter"
+                       class="form-control"
+                       placeholder="Filter results..." />
+            </div>
+
+            <table class="table table-striped mt-2" id="resultsTable">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -170,4 +177,23 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const filterInput = document.getElementById('resultsFilter');
+            const table = document.getElementById('resultsTable');
+            if (!filterInput || !table) return;
+
+            filterInput.addEventListener('input', function () {
+                const query = this.value.toLowerCase();
+                const rows = table.querySelectorAll('tbody tr');
+
+                rows.forEach(function (row) {
+                    const name = row.cells[0]?.textContent.toLowerCase() || '';
+                    const equipment = row.cells[2]?.textContent.toLowerCase() || '';
+                    const matches = name.includes(query) || equipment.includes(query);
+                    row.style.display = matches ? '' : 'none';
+                });
+            });
+        })();
+    </script>
 }
