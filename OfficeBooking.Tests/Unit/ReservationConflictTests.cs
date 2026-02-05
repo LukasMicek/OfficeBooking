@@ -31,8 +31,8 @@ public class ReservationConflictTests
     }
 
     [Theory]
-    [InlineData(10, 11, 11, 12)] // Adjacent: end == start
-    [InlineData(10, 11, 9, 10)]  // Adjacent: start == end
+    [InlineData(10, 11, 11, 12)] 
+    [InlineData(10, 11, 9, 10)]  
     public void Overlaps_WhenAdjacent_ReturnsFalse(int startA, int endA, int startB, int endB)
     {
         var result = ReservationConflict.Overlaps(

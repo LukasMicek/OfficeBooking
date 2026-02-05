@@ -1,29 +1,29 @@
-﻿@model IEnumerable<OfficeBooking.ViewModels.AdminReservationRowViewModel>
+@model IEnumerable<OfficeBooking.ViewModels.AdminReservationRowViewModel>
 
 @{
-    ViewData["Title"] = "Wszystkie rezerwacje";
+    ViewData["Title"] = "All Reservations";
 }
 
-<partial name="_PageHeader" model='("Rezerwacje (Admin)", "Podgląd wszystkich rezerwacji i możliwość anulowania z powodem.")' />
+<partial name="_PageHeader" model='("Reservations (Admin)", "View all reservations and cancel them with a reason.")' />
 
 <div class="card bg-light mb-4 mt-3">
     <div class="card-body py-2">
         <form method="get" class="row align-items-center g-3">
             <div class="col-auto">
-                <span class="fw-bold text-muted">Filtry:</span>
+                <span class="fw-bold text-muted">Filters:</span>
             </div>
             <div class="col-auto">
                 <div class="form-check pt-1">
                     <input class="form-check-input" type="checkbox" name="activeOnly" value="true" id="activeOnly"
                            @(Context.Request.Query["activeOnly"] == "true" ? "checked" : "") />
                     <label class="form-check-label" for="activeOnly">
-                        Pokaż tylko aktywne rezerwacje
+                        Show only active reservations
                     </label>
                 </div>
             </div>
             <div class="col-auto">
-                <button class="btn btn-sm btn-primary" type="submit">Zastosuj</button>
-                <a asp-action="Index" class="btn btn-sm btn-outline-secondary ms-2">Wyczyść</a>
+                <button class="btn btn-sm btn-primary" type="submit">Apply</button>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary ms-2">Clear</a>
             </div>
         </form>
     </div>
@@ -31,7 +31,7 @@
 
 @if (!Model.Any())
 {
-    <div class="alert alert-info">Brak rezerwacji spełniających kryteria.</div>
+    <div class="alert alert-info">No reservations match the criteria.</div>
 }
 else
 {
@@ -39,12 +39,12 @@ else
         <table class="table table-sm table-striped table-hover align-middle">
             <thead class="table-dark">
                 <tr>
-                    <th>Sala</th>
-                    <th>Tytuł</th>
-                    <th>Kiedy (Od - Do)</th>
-                    <th>Kto</th>
+                    <th>Room</th>
+                    <th>Title</th>
+                    <th>When (From - To)</th>
+                    <th>Who</th>
                     <th>Status</th>
-                    <th>Akcje</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -63,17 +63,17 @@ else
                         </td>
                         <td>
                             <small class="d-block">@r.UserEmail</small>
-                            <small class="text-muted">(@r.AttendeesCount os.)</small>
+                            <small class="text-muted">(@r.AttendeesCount people)</small>
                         </td>
                         <td>
                             @if (r.IsCancelled)
                             {
-                                <span class="badge bg-secondary">Anulowana</span>
+                                <span class="badge bg-secondary">Cancelled</span>
                             }
                             else
                             {
 
-                                <span class="badge bg-success">Aktywna</span>
+                                <span class="badge bg-success">Active</span>
                             }
                         </td>
                         <td>
@@ -83,7 +83,7 @@ else
                                    asp-controller="AdminReservations"
                                    asp-action="Cancel"
                                    asp-route-id="@r.Id">
-                                    Anuluj
+                                    Cancel
                                 </a>
                             }
                         </td>
@@ -93,4 +93,3 @@ else
         </table>
     </div>
 }
-

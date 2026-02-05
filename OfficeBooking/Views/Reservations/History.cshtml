@@ -1,15 +1,15 @@
-﻿@model IEnumerable<OfficeBooking.Models.Reservation>
+@model IEnumerable<OfficeBooking.Models.Reservation>
 
 @{
-    ViewData["Title"] = "Historia rezerwacji";
+    ViewData["Title"] = "Reservation History";
 }
 
-<partial name="_PageHeader" model='("Historia rezerwacji", "Anulowane rezerwacje wraz z powodem.")' />
+<partial name="_PageHeader" model='("Reservation History", "Cancelled reservations with reasons.")' />
 
 @if (!Model.Any())
 {
     <div class="alert alert-info mt-3">
-        Brak anulowanych rezerwacji.
+        No cancelled reservations.
     </div>
 }
 else
@@ -17,12 +17,12 @@ else
     <table class="table table-striped mt-3">
         <thead>
             <tr>
-                <th>Sala</th>
-                <th>Tytuł</th>
-                <th>Od</th>
-                <th>Do</th>
-                <th>Anulowano</th>
-                <th>Powód</th>
+                <th>Room</th>
+                <th>Title</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Cancelled</th>
+                <th>Reason</th>
             </tr>
         </thead>
         <tbody>

@@ -12,35 +12,35 @@ public class ReservationCreateViewModel : IValidatableObject
 
     public int RoomCapacity { get; set; }
 
-    [Display(Name = "Tytuł")]
+    [Display(Name = "Title")]
     [Required]
     [StringLength(120)]
     public string Title { get; set; } = string.Empty;
 
-    [Display(Name = "Liczba uczestników")]
+    [Display(Name = "Number of attendees")]
     [Range(1, 500)]
     public int AttendeesCount { get; set; } = 1;
 
-    [Display(Name = "Notatka")]
+    [Display(Name = "Notes")]
     [StringLength(500)]
     public string? Notes { get; set; }
 
-    [Display(Name = "Data rozpoczęcia")]
+    [Display(Name = "Start date")]
     [DataType(DataType.Date)]
     [Required]
     public DateTime StartDate { get; set; }
 
-    [Display(Name = "Godzina rozpoczęcia")]
+    [Display(Name = "Start time")]
     [DataType(DataType.Time)]
     [Required]
     public TimeSpan StartTime { get; set; } = new TimeSpan(9, 0, 0);
 
-    [Display(Name = "Data zakończenia")]
+    [Display(Name = "End date")]
     [DataType(DataType.Date)]
     [Required]
     public DateTime EndDate { get; set; }
 
-    [Display(Name = "Godzina zakończenia")]
+    [Display(Name = "End time")]
     [DataType(DataType.Time)]
     [Required]
     public TimeSpan EndTime { get; set; } = new TimeSpan(10, 0, 0);

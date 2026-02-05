@@ -8,7 +8,7 @@ namespace OfficeBooking.Models
 
         [Required]
         [StringLength(60)]
-        [Display(Name = "Nazwa")]
+        [Display(Name = "Name")]
         public string Name { get; set; } = string.Empty;
 
         public ICollection<RoomEquipment> RoomEquipments { get; set; } = new List<RoomEquipment>();

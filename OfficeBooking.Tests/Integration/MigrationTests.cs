@@ -47,7 +47,7 @@ public class MigrationTests : IDisposable
         using var context = new ApplicationDbContext(options);
         context.Database.Migrate();
 
-        // Act - Query SQLite to check indexes exist
+        // Act
         var indexes = context.Database
             .SqlQueryRaw<string>("SELECT name FROM sqlite_master WHERE type = 'index' AND name NOT LIKE 'sqlite_%'")
             .ToList();

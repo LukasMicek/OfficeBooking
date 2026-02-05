@@ -29,7 +29,7 @@ public class AdminReservationService : IAdminReservationService
                 Start = r.Start,
                 End = r.End,
                 AttendeesCount = r.AttendeesCount,
-                UserEmail = u.Email ?? "(brak email)",
+                UserEmail = u.Email ?? "(no email)",
                 IsCancelled = r.IsCancelled,
                 CancelledAt = r.CancelledAt,
                 CancelReason = r.CancelReason
@@ -58,7 +58,7 @@ public class AdminReservationService : IAdminReservationService
                 Title = r.Title,
                 Start = r.Start,
                 End = r.End,
-                UserEmail = u.Email ?? "(brak email)"
+                UserEmail = u.Email ?? "(no email)"
             }
         ).FirstOrDefaultAsync();
     }

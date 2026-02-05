@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace OfficeBooking.ViewModels
 {
@@ -14,7 +14,7 @@ namespace OfficeBooking.ViewModels
 
         public string UserEmail { get; set; } = string.Empty;
 
-        [Display(Name = "Powód anulowania")]
+        [Display(Name = "Cancellation reason")]
         [Required]
         [StringLength(200)]
         public string CancelReason { get; set; } = string.Empty;

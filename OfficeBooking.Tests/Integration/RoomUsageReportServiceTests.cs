@@ -146,7 +146,7 @@ public class RoomUsageReportServiceTests : IDisposable
 
         // Assert
         result.Rows.Should().HaveCount(1);
-        // 2h (cross Feb-Mar) + 2h (cross Mar-Apr) + 1h (in March) = 5h = 300 min
+        // 2h + 2h + 1h = 5h = 300 min
         result.Rows[0].TotalMinutes.Should().Be(300);
     }
 
