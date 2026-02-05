@@ -1,13 +1,13 @@
 ﻿@model OfficeBooking.ViewModels.RoomSearchViewModel
 
 @{
-    ViewData["Title"] = "Wyszukiwarka sal";
+    ViewData["Title"] = "Room Search";
 }
 
 <div class="row">
     <div class="col-lg-8">
 
-<partial name="_PageHeader" model='("Wyszukiwarka sal", "Znajdź dostępną salę według terminu, pojemności i wyposażenia.")' />
+<partial name="_PageHeader" model='("Room Search", "Find an available room by date, capacity, and equipment.")' />
 
 <form asp-action="Index" method="post" class="mt-3">
     @Html.AntiForgeryToken()
@@ -48,11 +48,11 @@
         </div>
 
         <div class="col-md-9 mb-3">
-            <label class="form-label">Wymagane wyposażenie</label>
+            <label class="form-label">Required equipment</label>
 
             @if (Model.AllEquipments.Count == 0)
             {
-                <div class="text-muted">Brak wyposażenia w bazie. Dodaj je jako admin.</div>
+                <div class="text-muted">No equipment in the database. Add some as admin.</div>
             }
             else
             {
@@ -77,19 +77,19 @@
         </div>
     </div>
 
-    <button type="submit" class="btn btn-primary">Szukaj</button>
+    <button type="submit" class="btn btn-primary">Search</button>
 </form>
 
     </div>
 
     <div class="col-lg-4">
         <div class="app-card p-3">
-            <h5>Zasady</h5>
+            <h5>Rules</h5>
             <ul class="mb-0">
-                <li>Godziny pracy: 08:00–20:00</li>
-                <li>Maks. czas rezerwacji: 8 godzin</li>
-                <li>Brak terminów w przeszłości</li>
-                <li>Konflikty czasowe są blokowane</li>
+                <li>Business hours: 08:00–20:00</li>
+                <li>Max reservation: 8 hours</li>
+                <li>No past dates allowed</li>
+                <li>Time conflicts are blocked</li>
             </ul>
         </div>
     </div>
@@ -98,7 +98,7 @@
 @if (!(User.Identity?.IsAuthenticated ?? false))
 {
     <div class="alert alert-info mt-4">
-        Aby zarezerwować salę, zaloguj się lub załóż konto.
+        To book a room, please log in or create an account.
     </div>
 }
 @if (Model.Results is not null)
@@ -106,15 +106,22 @@
     if (Model.Results.Count > 0)
     {
         <div class="app-card p-3 mt-4">
-            <h3 class="mb-3">Dostępne sale</h3>
+            <h3 class="mb-3">Available Rooms</h3>
 
-            <table class="table table-striped mt-2">
+            <div class="mb-3">
+                <input type="text"
+                       id="resultsFilter"
+                       class="form-control"
+                       placeholder="Filter results..." />
+            </div>
+
+            <table class="table table-striped mt-2" id="resultsTable">
                 <thead>
                     <tr>
-                        <th>Nazwa</th>
-                        <th>Pojemność</th>
-                        <th>Wyposażenie</th>
-                        <th>Akcja</th>
+                        <th>Name</th>
+                        <th>Capacity</th>
+                        <th>Equipment</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -128,7 +135,7 @@
                         <tr>
                             <td>@room.Name</td>
                             <td>@room.Capacity</td>
-                            <td>@(equipmentNames.Count == 0 ? "Brak" : string.Join(", ", equipmentNames))</td>
+                            <td>@(equipmentNames.Count == 0 ? "None" : string.Join(", ", equipmentNames))</td>
                             <td>
                                 @if (User.Identity?.IsAuthenticated ?? false)
                                 {
@@ -140,7 +147,7 @@
                                        asp-route-startTime="@Model.StartTime.ToString(@"hh\:mm")"
                                        asp-route-endDate="@Model.EndDate.ToString("yyyy-MM-dd")"
                                        asp-route-endTime="@Model.EndTime.ToString(@"hh\:mm")">
-                                        Rezerwuj
+                                        Book
                                     </a>
                                 }
                                 else
@@ -148,7 +155,7 @@
                                     <a class="btn btn-sm btn-outline-primary"
                                        asp-area="Identity"
                                        asp-page="/Account/Login">
-                                        Zaloguj się
+                                        Log in
                                     </a>
                                 }
                             </td>
@@ -162,7 +169,7 @@
     {
         <div class="app-card p-3 mt-4">
             <div class="alert alert-warning mb-0">
-                Brak dostępnych sal dla podanych kryteriów.
+                No rooms available for the specified criteria.
             </div>
         </div>
     }
@@ -170,4 +177,23 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const filterInput = document.getElementById('resultsFilter');
+            const table = document.getElementById('resultsTable');
+            if (!filterInput || !table) return;
+
+            filterInput.addEventListener('input', function () {
+                const query = this.value.toLowerCase();
+                const rows = table.querySelectorAll('tbody tr');
+
+                rows.forEach(function (row) {
+                    const name = row.cells[0]?.textContent.toLowerCase() || '';
+                    const equipment = row.cells[2]?.textContent.toLowerCase() || '';
+                    const matches = name.includes(query) || equipment.includes(query);
+                    row.style.display = matches ? '' : 'none';
+                });
+            });
+        })();
+    </script>
 }
