@@ -5,12 +5,7 @@ services:
       - "8080:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      # Uncomment to seed admin account:
-      # - SEED_ADMIN=true
-      # - SEED_ADMIN_EMAIL=admin@example.com
-      # - SEED_ADMIN_PASSWORD=Admin123!
-      # Uncomment to seed demo data:
-      # - SEED_DEMO_DATA=true
+      # See README.md for seeding options (SEED_ADMIN, SEED_DEMO_DATA)
     volumes:
       - officebooking-data:/app/data
 
