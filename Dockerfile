@@ -18,10 +18,14 @@ WORKDIR /app
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ConnectionStrings__DefaultConnection="Data Source=/app/data/officebooking.db"
 
-RUN mkdir -p /app/data
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser \
+    && mkdir -p /app/data \
+    && chown -R appuser:appgroup /app
+
+USER appuser
 
 EXPOSE 8080
-
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "OfficeBooking.dll"]
+
 
