@@ -8,16 +8,19 @@ namespace OfficeBooking.Controllers;
 public class HomeController : Controller
 {
     private readonly IRoomService _roomService;
+    private readonly TimeProvider _timeProvider;
 
-    public HomeController(IRoomService roomService)
+    public HomeController(IRoomService roomService, TimeProvider timeProvider)
     {
         _roomService = roomService;
+        _timeProvider = timeProvider;
     }
 
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var (start, end) = BookingRules.GetDefaultTimeSlot();
+        var now = _timeProvider.GetLocalNow().DateTime;
+        var (start, end) = BookingRules.GetDefaultTimeSlot(now);
 
         var vm = new RoomSearchViewModel
         {

@@ -93,7 +93,8 @@ public class BookingRulesTests
     [Fact]
     public void GetDefaultTimeSlot_ReturnsOneHourSlotWithinBusinessHours()
     {
-        var (start, end) = BookingRules.GetDefaultTimeSlot();
+        var now = new DateTime(2026, 1, 15, 10, 30, 0);
+        var (start, end) = BookingRules.GetDefaultTimeSlot(now);
 
         (end - start).Should().Be(TimeSpan.FromHours(1));
         BookingRules.IsWithinBusinessHours(start.TimeOfDay).Should().BeTrue();

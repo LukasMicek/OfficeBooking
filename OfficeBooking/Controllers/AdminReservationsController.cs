@@ -9,10 +9,14 @@ namespace OfficeBooking.Controllers
     public class AdminReservationsController : Controller
     {
         private readonly IAdminReservationService _adminReservationService;
+        private readonly TimeProvider _timeProvider;
 
-        public AdminReservationsController(IAdminReservationService adminReservationService)
+        public AdminReservationsController(
+            IAdminReservationService adminReservationService,
+            TimeProvider timeProvider)
         {
             _adminReservationService = adminReservationService;
+            _timeProvider = timeProvider;
         }
 
         [HttpGet]
@@ -44,7 +48,8 @@ namespace OfficeBooking.Controllers
                 return View(vm);
             }
 
-            var result = await _adminReservationService.CancelAsync(vm.Id, vm.CancelReason, DateTime.Now);
+            var now = _timeProvider.GetLocalNow().DateTime;
+            var result = await _adminReservationService.CancelAsync(vm.Id, vm.CancelReason, now);
 
             switch (result.Status)
             {

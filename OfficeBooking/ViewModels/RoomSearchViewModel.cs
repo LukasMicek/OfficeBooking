@@ -45,11 +45,16 @@ public class RoomSearchViewModel : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        var timeProvider = validationContext.GetService(typeof(TimeProvider)) as TimeProvider
+                           ?? TimeProvider.System;
+        var now = timeProvider.GetLocalNow().DateTime;
+
         return BookingRules.ValidateTimeRange(
             StartTime,
             EndTime,
             StartDateTime,
             EndDateTime,
+            now,
             allowPastBookings: false
         );
     }
