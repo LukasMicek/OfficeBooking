@@ -32,7 +32,7 @@ public class ReservationServiceTests : IDisposable
         context.Rooms.Add(room);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context, _timeProvider);
+        var service = new ReservationService(context, _timeProvider, new RoomLockProvider());
         var request = new CreateReservationRequest(
             RoomId: room.Id,
             UserId: "user-123",
@@ -68,7 +68,7 @@ public class ReservationServiceTests : IDisposable
         context.Rooms.Add(room);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context, _timeProvider);
+        var service = new ReservationService(context, _timeProvider, new RoomLockProvider());
         var request = new CreateReservationRequest(
             RoomId: room.Id,
             UserId: "user-123",
@@ -109,7 +109,7 @@ public class ReservationServiceTests : IDisposable
         context.Reservations.Add(existingReservation);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context, _timeProvider);
+        var service = new ReservationService(context, _timeProvider, new RoomLockProvider());
         var request = new CreateReservationRequest(
             RoomId: room.Id,
             UserId: "user-123",
@@ -134,7 +134,7 @@ public class ReservationServiceTests : IDisposable
     {
         // Arrange
         using var context = _dbFactory.CreateContext();
-        var service = new ReservationService(context, _timeProvider);
+        var service = new ReservationService(context, _timeProvider, new RoomLockProvider());
         var request = new CreateReservationRequest(
             RoomId: 999,
             UserId: "user-123",
@@ -176,7 +176,7 @@ public class ReservationServiceTests : IDisposable
         context.Reservations.Add(cancelledReservation);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context, _timeProvider);
+        var service = new ReservationService(context, _timeProvider, new RoomLockProvider());
         var request = new CreateReservationRequest(
             RoomId: room.Id,
             UserId: "user-123",
@@ -216,7 +216,7 @@ public class ReservationServiceTests : IDisposable
         context.Reservations.Add(existingReservation);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context, _timeProvider);
+        var service = new ReservationService(context, _timeProvider, new RoomLockProvider());
         var request = new CreateReservationRequest(
             RoomId: room.Id,
             UserId: "user-123",
