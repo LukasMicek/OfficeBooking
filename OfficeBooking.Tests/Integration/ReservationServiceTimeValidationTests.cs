@@ -28,7 +28,7 @@ public class ReservationServiceTimeValidationTests : IDisposable
         context.Rooms.Add(room);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context, _timeProvider);
+        var service = new ReservationService(context, _timeProvider, new RoomLockProvider());
         var request = new CreateReservationRequest(
             RoomId: room.Id,
             UserId: "user-123",
@@ -68,7 +68,7 @@ public class ReservationServiceTimeValidationTests : IDisposable
         context.Reservations.Add(reservation);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context, _timeProvider);
+        var service = new ReservationService(context, _timeProvider, new RoomLockProvider());
         var updateRequest = new UpdateReservationRequest(
             Title: "Updated",
             Notes: null,
@@ -106,7 +106,7 @@ public class ReservationServiceTimeValidationTests : IDisposable
         context.Reservations.Add(reservation);
         await context.SaveChangesAsync();
 
-        var service = new ReservationService(context, _timeProvider);
+        var service = new ReservationService(context, _timeProvider, new RoomLockProvider());
         var updateRequest = new UpdateReservationRequest(
             Title: "Updated Meeting",
             Notes: "New notes",

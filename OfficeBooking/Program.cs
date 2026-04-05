@@ -19,6 +19,7 @@ builder.Services.AddControllersWithViews();
 
 // Application services
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<IRoomLockProvider, RoomLockProvider>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<IEquipmentService, EquipmentService>();

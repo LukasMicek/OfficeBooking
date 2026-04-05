@@ -9,13 +9,18 @@ public class ReservationService : IReservationService
 {
     private readonly ApplicationDbContext _context;
     private readonly TimeProvider _timeProvider;
+    private readonly IRoomLockProvider _roomLockProvider;
 
     private const string DefaultCancelReason = "Cancelled by user";
 
-    public ReservationService(ApplicationDbContext context, TimeProvider timeProvider)
+    public ReservationService(
+        ApplicationDbContext context,
+        TimeProvider timeProvider,
+        IRoomLockProvider roomLockProvider)
     {
         _context = context;
         _timeProvider = timeProvider;
+        _roomLockProvider = roomLockProvider;
     }
 
     public async Task<IReadOnlyList<Reservation>> GetUserReservationsAsync(string userId, bool includeCancelled = false)
@@ -76,6 +81,9 @@ public class ReservationService : IReservationService
         if (request.AttendeesCount > room.Capacity)
             return ReservationResult.Fail($"Number of attendees cannot exceed room capacity ({room.Capacity}).");
 
+        using var _ = await _roomLockProvider.AcquireAsync(request.RoomId);
+        using var tx = await _context.Database.BeginTransactionAsync();
+
         var existingReservations = await _context.Reservations
             .AsNoTracking()
             .Where(r => r.RoomId == request.RoomId)
@@ -97,12 +105,25 @@ public class ReservationService : IReservationService
 
         _context.Reservations.Add(reservation);
         await _context.SaveChangesAsync();
+        await tx.CommitAsync();
 
         return ReservationResult.Ok(reservation);
     }
 
     public async Task<ReservationResult> UpdateAsync(int id, string userId, UpdateReservationRequest request)
     {
+        var roomId = await _context.Reservations
+            .AsNoTracking()
+            .Where(r => r.Id == id && r.UserId == userId)
+            .Select(r => (int?)r.RoomId)
+            .FirstOrDefaultAsync();
+
+        if (roomId == null)
+            return ReservationResult.Fail("Reservation does not exist.");
+
+        using var _ = await _roomLockProvider.AcquireAsync(roomId.Value);
+        using var tx = await _context.Database.BeginTransactionAsync();
+
         var reservation = await _context.Reservations
             .Include(r => r.Room)
             .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
@@ -136,6 +157,7 @@ public class ReservationService : IReservationService
         reservation.End = request.End;
 
         await _context.SaveChangesAsync();
+        await tx.CommitAsync();
 
         return ReservationResult.Ok(reservation);
     }
